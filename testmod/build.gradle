@@ -1,0 +1,5 @@
+// :testmod — test addon. Depends ONLY on :api so the SPI is exercised end-to-end.
+
+plugins {
+    id 'colony.mod-conventions'
+}

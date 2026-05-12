@@ -1,0 +1,25 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "LGPL-3.0-or-later"
+issueTrackerURL = "https://github.com/akikazu/colony/issues"
+
+[[mods]]
+modId = "colony"
+version = "${file.jarVersion}"
+displayName = "Colony"
+description = "Free-build colony simulation"
+authors = "Akikazu"
+
+[[dependencies.colony]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.colony]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "BOTH"

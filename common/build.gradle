@@ -1,0 +1,6 @@
+// :common — implementation logic. Sees Minecraft + NeoForge but stays loader-agnostic where feasible.
+// Convention plugin (colony.java-conventions) applied in the next step.
+
+plugins {
+    id 'java-library'
+}

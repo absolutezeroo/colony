@@ -1,0 +1,5 @@
+// :core — pure Java. No Minecraft, no NeoForge. JUnit-testable headless.
+
+plugins {
+    id 'colony.java-conventions'
+}

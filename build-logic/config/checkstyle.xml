@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+    Colony Checkstyle configuration.
+
+    Companion to build-logic/config/eclipse-allman.xml. Spotless (with the
+    Eclipse formatter) handles auto-formatting; this file enforces structural
+    rules that Spotless cannot express on its own:
+
+      * blank-line-before-return / blank-line-before-if (style pillar)
+      * no trailing comments
+      * no wildcard imports
+      * indentation (4 spaces)
+      * line length (120)
+
+    Rules here must stay aligned with docs/03-CODE-STYLE.md. Edits should be
+    proposed via PR; rules are global, not per-PR concessions.
+-->
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="error"/>
+    <property name="fileExtensions" value="java"/>
+
+    <module name="LineLength">
+        <property name="fileExtensions" value="java"/>
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
+
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <module name="NewlineAtEndOfFile">
+        <property name="lineSeparator" value="lf_cr_crlf"/>
+    </module>
+
+    <!--
+        Style-pillar rule: every `return` statement must be preceded by a
+        blank line, unless it is the only statement in its enclosing block.
+
+        The regex matches a line of code (not blank, not a brace, not a
+        comment continuation) followed immediately by an indented `return`
+        on the next line.
+    -->
+    <module name="RegexpMultiline">
+        <property name="format" value="^[ \t]*[^\s{}/\*].*\R[ \t]+return\b"/>
+        <property name="fileExtensions" value="java"/>
+        <property name="message" value="Missing blank line before 'return' statement (see docs/03-CODE-STYLE.md)."/>
+    </module>
+
+    <!--
+        Style-pillar rule: every `if` block must be preceded by a blank line,
+        unless it is the first statement in its enclosing block. `else if`
+        is excluded via the negative lookbehind on `else `.
+    -->
+    <module name="RegexpMultiline">
+        <property name="format" value="^[ \t]*[^\s{}/\*].*\R[ \t]+(?&lt;!else )if[ \t]*\("/>
+        <property name="fileExtensions" value="java"/>
+        <property name="message" value="Missing blank line before 'if' statement (see docs/03-CODE-STYLE.md)."/>
+    </module>
+
+    <module name="TreeWalker">
+        <property name="tabWidth" value="4"/>
+
+        <module name="EmptyLineSeparator">
+            <property name="allowNoEmptyLineBetweenFields" value="true"/>
+            <property name="allowMultipleEmptyLines" value="false"/>
+            <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
+            <property name="tokens"
+                      value="PACKAGE_DEF, IMPORT, STATIC_IMPORT, CLASS_DEF, INTERFACE_DEF,
+                             ENUM_DEF, RECORD_DEF, STATIC_INIT, INSTANCE_INIT, METHOD_DEF,
+                             CTOR_DEF, COMPACT_CTOR_DEF"/>
+        </module>
+
+        <module name="TrailingComment">
+            <property name="format" value="^[\s\}\);]*$"/>
+        </module>
+
+        <module name="AvoidStarImport">
+            <property name="allowClassImports" value="false"/>
+            <property name="allowStaticMemberImports" value="false"/>
+        </module>
+
+        <module name="RedundantImport"/>
+        <module name="UnusedImports">
+            <property name="processJavadoc" value="true"/>
+        </module>
+
+        <module name="Indentation">
+            <property name="basicOffset" value="4"/>
+            <property name="braceAdjustment" value="0"/>
+            <property name="caseIndent" value="4"/>
+            <property name="throwsIndent" value="4"/>
+            <property name="lineWrappingIndentation" value="4"/>
+            <property name="arrayInitIndent" value="4"/>
+        </module>
+
+        <module name="LeftCurly">
+            <property name="option" value="nl"/>
+        </module>
+        <module name="RightCurly">
+            <property name="option" value="alone"/>
+            <property name="tokens"
+                      value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY, LITERAL_IF,
+                             LITERAL_ELSE, LITERAL_DO, LITERAL_FOR, LITERAL_WHILE,
+                             CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_SWITCH,
+                             STATIC_INIT, INSTANCE_INIT, ANNOTATION_DEF, ENUM_DEF,
+                             INTERFACE_DEF, RECORD_DEF, COMPACT_CTOR_DEF"/>
+        </module>
+
+        <module name="NeedBraces"/>
+
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyMethods" value="true"/>
+            <property name="allowEmptyTypes" value="true"/>
+            <property name="allowEmptyLoops" value="true"/>
+            <property name="allowEmptyLambdas" value="true"/>
+        </module>
+
+        <module name="OneStatementPerLine"/>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="ArrayTypeStyle"/>
+        <module name="UpperEll"/>
+        <module name="ModifierOrder"/>
+
+        <module name="OuterTypeFilename"/>
+    </module>
+</module>

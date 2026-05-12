@@ -1,0 +1,43 @@
+plugins {
+    id 'maven-publish'
+}
+
+publishing {
+    publications {
+        api(MavenPublication) {
+            artifactId = 'colony-api'
+            from components.java
+
+            pom {
+                name = 'Colony API'
+                description = 'Public API for the Colony NeoForge mod.'
+                url = 'https://github.com/akikazu/colony'
+
+                licenses {
+                    license {
+                        name = 'LGPL-3.0-or-later'
+                        url = 'https://www.gnu.org/licenses/lgpl-3.0.txt'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:https://github.com/akikazu/colony.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/akikazu/colony.git'
+                    url = 'https://github.com/akikazu/colony'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            // TODO(release): replace placeholder once the GitHub Packages repo is provisioned.
+            url = uri('https://maven.pkg.github.com/OWNER/REPO')
+            credentials {
+                username = providers.environmentVariable('GITHUB_ACTOR').orNull
+                password = providers.environmentVariable('GITHUB_TOKEN').orNull
+            }
+        }
+    }
+}

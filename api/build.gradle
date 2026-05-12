@@ -1,0 +1,6 @@
+// :api — public interfaces. Compiled against vanilla Minecraft via MDG vanilla-mode.
+
+plugins {
+    id 'colony.java-conventions'
+    id 'colony.publish-conventions'
+}
