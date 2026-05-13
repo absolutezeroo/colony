@@ -55,10 +55,14 @@ neoForge {
     }
 }
 
-// Generates a minimal 3x3x3 empty structure NBT used by gametests. NeoForge 1.21.1 has no @EmptyTemplate annotation,
-// so the structure must exist on disk. We emit binary NBT (gzipped) directly to avoid pulling Minecraft's NbtIo into
-// the buildscript classpath.
+// Generates minimal structure NBTs used by gametests. NeoForge 1.21.1 has no @EmptyTemplate annotation, so the
+// structures must exist on disk. We emit binary NBT (gzipped) directly to avoid pulling Minecraft's NbtIo into the
+// buildscript classpath.
+//
+//   * empty_3x3x3       — fully empty 3x3x3 box, used by colony registration tests.
+//   * empty_3x3_platform — 3x3 stone platform at y=0, then 3x3x3 of air above; entities spawn at y=2 without falling.
 def emptyStructureFile = file("src/main/resources/data/colony/structure/empty_3x3x3.nbt")
+def platformStructureFile = file("src/main/resources/data/colony/structure/empty_3x3_platform.nbt")
 
 tasks.register('generateEmptyGameTestStructure') {
     outputs.file(emptyStructureFile)
@@ -109,5 +113,94 @@ tasks.register('generateEmptyGameTestStructure') {
     }
 }
 
-tasks.named('processResources').configure { dependsOn 'generateEmptyGameTestStructure' }
-tasks.named('sourcesJar').configure { dependsOn 'generateEmptyGameTestStructure' }
+tasks.register('generatePlatformGameTestStructure') {
+    outputs.file(platformStructureFile)
+    doLast {
+        platformStructureFile.parentFile.mkdirs()
+
+        def baos = new java.io.ByteArrayOutputStream()
+        def out = new java.io.DataOutputStream(baos)
+
+        // Root compound (unnamed).
+        out.writeByte(0x0A)
+        out.writeUTF("")
+
+        // DataVersion (Int) — same as the empty template.
+        out.writeByte(0x03)
+        out.writeUTF("DataVersion")
+        out.writeInt(3953)
+
+        // size: List<Int>[3] = [3, 3, 3]
+        out.writeByte(0x09)
+        out.writeUTF("size")
+        out.writeByte(0x03)
+        out.writeInt(3)
+        out.writeInt(3)
+        out.writeInt(3)
+        out.writeInt(3)
+
+        // blocks: List<Compound> with 9 stone entries forming the y=0 platform.
+        out.writeByte(0x09)
+        out.writeUTF("blocks")
+        out.writeByte(0x0A)
+        out.writeInt(9)
+
+        for (int x = 0; x < 3; x++) {
+            for (int z = 0; z < 3; z++) {
+                // pos: List<Int>[3]
+                out.writeByte(0x09)
+                out.writeUTF("pos")
+                out.writeByte(0x03)
+                out.writeInt(3)
+                out.writeInt(x)
+                out.writeInt(0)
+                out.writeInt(z)
+
+                // state: Int (palette index)
+                out.writeByte(0x03)
+                out.writeUTF("state")
+                out.writeInt(0)
+
+                // End of compound entry.
+                out.writeByte(0x00)
+            }
+        }
+
+        // entities: empty List<Compound>
+        out.writeByte(0x09)
+        out.writeUTF("entities")
+        out.writeByte(0x0A)
+        out.writeInt(0)
+
+        // palette: List<Compound> with one entry — minecraft:stone.
+        out.writeByte(0x09)
+        out.writeUTF("palette")
+        out.writeByte(0x0A)
+        out.writeInt(1)
+
+        // palette[0] = { Name: "minecraft:stone" }
+        out.writeByte(0x08)
+        out.writeUTF("Name")
+        out.writeUTF("minecraft:stone")
+        out.writeByte(0x00)
+
+        // End of root compound.
+        out.writeByte(0x00)
+        out.close()
+
+        platformStructureFile.withOutputStream { fos ->
+            new java.util.zip.GZIPOutputStream(fos).withCloseable { gz ->
+                gz.write(baos.toByteArray())
+            }
+        }
+    }
+}
+
+tasks.named('processResources').configure {
+    dependsOn 'generateEmptyGameTestStructure'
+    dependsOn 'generatePlatformGameTestStructure'
+}
+tasks.named('sourcesJar').configure {
+    dependsOn 'generateEmptyGameTestStructure'
+    dependsOn 'generatePlatformGameTestStructure'
+}

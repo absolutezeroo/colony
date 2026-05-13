@@ -2,20 +2,27 @@ package com.akikazu.colony.neoforge;
 
 import com.akikazu.colony.api.job.JobType;
 import com.akikazu.colony.common.bootstrap.ColonyBootstrap;
+import com.akikazu.colony.common.citizen.entity.EntityCitizen;
 import com.akikazu.colony.core.registry.RegistryView;
+import com.akikazu.colony.neoforge.client.ColonyClientEvents;
 import com.akikazu.colony.neoforge.command.ColonyCommands;
+import com.akikazu.colony.neoforge.entity.ColonyEntities;
 import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
+import com.akikazu.colony.neoforge.gametest.EntityCitizenGameTests;
 import com.akikazu.colony.neoforge.network.ColonyPayloads;
 import com.akikazu.colony.neoforge.network.ColonyServerSession;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
+import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
@@ -43,9 +50,17 @@ public final class ColonyMod
     {
         ColonyBootstrap.register();
 
+        ColonyEntities.register(modEventBus);
+
         modEventBus.addListener(this::onCommonSetup);
+        modEventBus.addListener(this::onCreateAttributes);
         modEventBus.addListener(ColonyPayloads::register);
         modEventBus.addListener(this::onRegisterGameTests);
+
+        if (FMLEnvironment.dist == Dist.CLIENT)
+        {
+            ColonyClientEvents.register(modEventBus);
+        }
 
         NeoForge.EVENT_BUS.addListener(ColonyCommands::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
@@ -59,9 +74,15 @@ public final class ColonyMod
     {
     }
 
+    private void onCreateAttributes(EntityAttributeCreationEvent event)
+    {
+        event.put(ColonyEntities.CITIZEN.get(), EntityCitizen.createAttributes().build());
+    }
+
     private void onRegisterGameTests(RegisterGameTestsEvent event)
     {
         event.register(ColonyRegistrationGameTest.class);
+        event.register(EntityCitizenGameTests.class);
     }
 
     private void onServerStarting(ServerStartingEvent event)
