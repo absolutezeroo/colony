@@ -12,6 +12,7 @@ import com.akikazu.colony.neoforge.command.ColonyCommands;
 import com.akikazu.colony.neoforge.entity.ColonyEntities;
 import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
 import com.akikazu.colony.neoforge.gametest.EntityCitizenGameTests;
+import com.akikazu.colony.neoforge.gametest.TownHallFoundingGameTests;
 import com.akikazu.colony.neoforge.item.ColonyCreativeTabs;
 import com.akikazu.colony.neoforge.item.ColonyItems;
 import com.akikazu.colony.neoforge.network.ColonyPayloads;
@@ -93,6 +94,7 @@ public final class ColonyMod
     {
         event.register(ColonyRegistrationGameTest.class);
         event.register(EntityCitizenGameTests.class);
+        event.register(TownHallFoundingGameTests.class);
     }
 
     private void onServerStarting(ServerStartingEvent event)
