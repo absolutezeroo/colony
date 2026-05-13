@@ -3,3 +3,15 @@
 plugins {
     id 'colony.mod-conventions'
 }
+
+dependencies {
+    implementation project(':api')
+}
+
+neoForge {
+    mods {
+        colonytest {
+            sourceSet sourceSets.main
+        }
+    }
+}

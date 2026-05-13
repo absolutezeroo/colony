@@ -1,6 +1,12 @@
 // Root project — orchestrates subprojects only. No production code lives here.
 // Per-module configuration lives in build-logic convention plugins (added in the next step).
 
+// Apply idea-ext exactly once at the root so MDG's per-subproject application short-circuits and IDEA Gradle sync stops
+// re-registering the `settings` extension (which raises "Cannot add extension with name 'settings'…").
+plugins {
+    id 'org.jetbrains.gradle.plugin.idea-ext'
+}
+
 allprojects {
     group = project.findProperty('mod_group_id')
     version = project.findProperty('mod_version')

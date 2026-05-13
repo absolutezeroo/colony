@@ -3,3 +3,9 @@
 plugins {
     id 'colony.java-conventions'
 }
+
+dependencies {
+    api 'com.mojang:datafixerupper:8.0.16'
+    // Align with Minecraft 1.21.1's strictly-required Guava version to avoid runtimeClasspath conflicts.
+    implementation 'com.google.guava:guava:32.1.2-jre'
+}

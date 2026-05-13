@@ -1,6 +1,21 @@
 // :common — implementation logic. Sees Minecraft + NeoForge but stays loader-agnostic where feasible.
-// Convention plugin (colony.java-conventions) applied in the next step.
 
 plugins {
-    id 'java-library'
+    id 'colony.java-conventions'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    version = project.findProperty('neoforge_version')
+
+    parchment {
+        minecraftVersion = project.findProperty('parchment_minecraft')
+        mappingsVersion = project.findProperty('parchment_mappings')
+    }
+
+    addModdingDependenciesTo sourceSets.test
+}
+
+dependencies {
+    api project(':api')
 }

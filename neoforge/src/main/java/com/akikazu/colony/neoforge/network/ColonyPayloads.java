@@ -1,0 +1,151 @@
+package com.akikazu.colony.neoforge.network;
+
+import com.akikazu.colony.neoforge.ColonyMod;
+
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+/**
+ * Central registration for Colony's {@code CustomPacketPayload}s. Versioned via the registrar string so that
+ * incompatible client/server combos are rejected at handshake.
+ *
+ * <p>
+ * C2S validation lives in {@link ColonyRegistrationProcessor}; the handler here is intentionally thin so wire and
+ * gametest paths share the same decision logic.
+ */
+public final class ColonyPayloads
+{
+    public static final String VERSION = "1";
+
+    private ColonyPayloads()
+    {
+    }
+
+    public static void register(RegisterPayloadHandlersEvent event)
+    {
+        PayloadRegistrar registrar = event.registrar(VERSION);
+
+        registrar.playToServer(
+                RegisterColonyPayload.TYPE,
+                RegisterColonyPayload.STREAM_CODEC,
+                ColonyPayloads::handleRegisterColony);
+
+        registrar.playToServer(
+                SubscribePayload.TYPE,
+                SubscribePayload.STREAM_CODEC,
+                ColonyPayloads::handleSubscribe);
+
+        registrar.playToServer(
+                UnsubscribePayload.TYPE,
+                UnsubscribePayload.STREAM_CODEC,
+                ColonyPayloads::handleUnsubscribe);
+
+        registrar.playToClient(
+                RegisterColonyResponsePayload.TYPE,
+                RegisterColonyResponsePayload.STREAM_CODEC,
+                ColonyPayloads::handleRegisterColonyResponse);
+    }
+
+    public static boolean hasRegistrationPermission(ServerPlayer player)
+    {
+        return player != null;
+    }
+
+    private static void handleRegisterColony(RegisterColonyPayload payload, IPayloadContext context)
+    {
+        if (!(context.player() instanceof ServerPlayer sender))
+        {
+            return;
+        }
+
+        ServerLevel level = sender.serverLevel();
+        MinecraftServer server = sender.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        ColonyServerSession session = ColonyServerSession.get(server);
+        ColonyRegistrationProcessor processor = new ColonyRegistrationProcessor(session.rateLimiter());
+
+        RegisterColonyResponsePayload response = processor.process(
+                level,
+                sender.getUUID(),
+                sender.position(),
+                hasRegistrationPermission(sender),
+                payload);
+
+        if (response.success())
+        {
+            ColonyMod.LOGGER.info(
+                    "Registered colony {} '{}' at {} for player {}",
+                    payload.id(),
+                    payload.name(),
+                    payload.pos(),
+                    sender.getUUID());
+        }
+        else
+        {
+            ColonyMod.LOGGER.warn(
+                    "Rejected colony registration from {} (name='{}', pos={}): {}",
+                    sender.getUUID(),
+                    payload.name(),
+                    payload.pos(),
+                    response.errorReason());
+        }
+
+        PacketDistributor.sendToPlayer(sender, response);
+    }
+
+    private static void handleSubscribe(SubscribePayload payload, IPayloadContext context)
+    {
+        if (!(context.player() instanceof ServerPlayer sender))
+        {
+            return;
+        }
+
+        MinecraftServer server = sender.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        ColonyServerSession.get(server).subscriptions().subscribe(sender.getUUID(), payload.colony());
+    }
+
+    private static void handleUnsubscribe(UnsubscribePayload payload, IPayloadContext context)
+    {
+        if (!(context.player() instanceof ServerPlayer sender))
+        {
+            return;
+        }
+
+        MinecraftServer server = sender.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        ColonyServerSession.get(server).subscriptions().unsubscribe(sender.getUUID(), payload.colony());
+    }
+
+    private static void handleRegisterColonyResponse(RegisterColonyResponsePayload payload, IPayloadContext context)
+    {
+        if (payload.success())
+        {
+            ColonyMod.LOGGER.info("Colony registration accepted: id={}", payload.id());
+
+            return;
+        }
+
+        ColonyMod.LOGGER.info("Colony registration rejected: reason={}", payload.errorReason());
+    }
+}

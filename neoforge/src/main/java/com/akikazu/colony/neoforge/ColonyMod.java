@@ -1,22 +1,36 @@
 package com.akikazu.colony.neoforge;
 
+import com.akikazu.colony.api.job.JobType;
+import com.akikazu.colony.common.bootstrap.ColonyBootstrap;
+import com.akikazu.colony.core.registry.RegistryView;
+import com.akikazu.colony.neoforge.command.ColonyCommands;
+import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
+import com.akikazu.colony.neoforge.network.ColonyPayloads;
+import com.akikazu.colony.neoforge.network.ColonyServerSession;
+
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.stream.Collectors;
+
 /**
  * Entry point for the Colony mod on the NeoForge loader.
  *
- * <p>Wires loader lifecycle events to colony bootstrap. Keeps logic minimal: heavier
- * subsystems live in {@code :common} and are reachable from this class only.
+ * <p>
+ * Wires loader lifecycle events to colony bootstrap. Keeps logic minimal: heavier subsystems live in {@code :common}
+ * and are reachable from this class only.
  */
 @Mod(ColonyMod.MOD_ID)
 public final class ColonyMod
@@ -27,19 +41,48 @@ public final class ColonyMod
 
     public ColonyMod(IEventBus modEventBus)
     {
-        modEventBus.addListener(this::onCommonSetup);
+        ColonyBootstrap.register();
 
+        modEventBus.addListener(this::onCommonSetup);
+        modEventBus.addListener(ColonyPayloads::register);
+        modEventBus.addListener(this::onRegisterGameTests);
+
+        NeoForge.EVENT_BUS.addListener(ColonyCommands::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
+        NeoForge.EVENT_BUS.addListener(this::onServerStopped);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(this::onPlayerChangedDimension);
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event)
     {
     }
 
+    private void onRegisterGameTests(RegisterGameTestsEvent event)
+    {
+        event.register(ColonyRegistrationGameTest.class);
+    }
+
     private void onServerStarting(ServerStartingEvent event)
     {
-        LOGGER.info("Colony loaded on server");
+        RegistryView<JobType> jobTypes = ColonyBootstrap.jobTypesView();
+        String ids = jobTypes.values()
+                .map(JobType::id)
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+
+        LOGGER.info("Colony loaded on server: {} JobType(s) registered [{}]", jobTypes.size(), ids);
+    }
+
+    private void onServerStopped(ServerStoppedEvent event)
+    {
+        MinecraftServer server = event.getServer();
+
+        if (server != null)
+        {
+            ColonyServerSession.release(server);
+        }
     }
 
     private void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event)
@@ -48,5 +91,39 @@ public final class ColonyMod
         {
             serverPlayer.sendSystemMessage(Component.literal("Hello, Colony is loaded."));
         }
+    }
+
+    private void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer serverPlayer))
+        {
+            return;
+        }
+
+        MinecraftServer server = serverPlayer.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        ColonyServerSession.get(server).subscriptions().forgetPlayer(serverPlayer.getUUID());
+    }
+
+    private void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer serverPlayer))
+        {
+            return;
+        }
+
+        MinecraftServer server = serverPlayer.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        ColonyServerSession.get(server).subscriptions().forgetPlayer(serverPlayer.getUUID());
     }
 }

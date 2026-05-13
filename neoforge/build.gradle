@@ -3,3 +3,111 @@
 plugins {
     id 'colony.mod-conventions'
 }
+
+dependencies {
+    implementation project(':common')
+}
+
+// The mod's classes are split across :neoforge, :common, :api and :core. Each source set must be declared so MDG
+// places them on the in-dev mod classpath; otherwise NoClassDefFoundError is thrown at runtime for cross-module refs.
+//
+// Run configurations live here (not in the shared convention) so they apply only to the shipped jar module. Otherwise
+// :testmod would also expose runClient/runServer tasks and launch a second Minecraft instance alongside this one.
+neoForge {
+    mods {
+        "${project.findProperty('mod_id')}" {
+            sourceSet sourceSets.main
+            sourceSet project(':common').sourceSets.main
+            sourceSet project(':api').sourceSets.main
+            sourceSet project(':core').sourceSets.main
+        }
+    }
+
+    runs {
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        client {
+            client()
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+        }
+
+        data {
+            data()
+            programArguments.addAll(
+                '--mod', project.findProperty('mod_id'),
+                '--all',
+                '--output', file('src/generated/resources/').absolutePath,
+                '--existing', file('src/main/resources/').absolutePath
+            )
+        }
+
+        gameTestServer {
+            type = 'gameTestServer'
+        }
+    }
+}
+
+// Generates a minimal 3x3x3 empty structure NBT used by gametests. NeoForge 1.21.1 has no @EmptyTemplate annotation,
+// so the structure must exist on disk. We emit binary NBT (gzipped) directly to avoid pulling Minecraft's NbtIo into
+// the buildscript classpath.
+def emptyStructureFile = file("src/main/resources/data/colony/structure/empty_3x3x3.nbt")
+
+tasks.register('generateEmptyGameTestStructure') {
+    outputs.file(emptyStructureFile)
+    doLast {
+        emptyStructureFile.parentFile.mkdirs()
+
+        def baos = new java.io.ByteArrayOutputStream()
+        def out = new java.io.DataOutputStream(baos)
+
+        out.writeByte(0x0A)
+        out.writeUTF("")
+
+        out.writeByte(0x03)
+        out.writeUTF("DataVersion")
+        out.writeInt(3953)
+
+        out.writeByte(0x09)
+        out.writeUTF("size")
+        out.writeByte(0x03)
+        out.writeInt(3)
+        out.writeInt(3)
+        out.writeInt(3)
+        out.writeInt(3)
+
+        out.writeByte(0x09)
+        out.writeUTF("blocks")
+        out.writeByte(0x0A)
+        out.writeInt(0)
+
+        out.writeByte(0x09)
+        out.writeUTF("entities")
+        out.writeByte(0x0A)
+        out.writeInt(0)
+
+        out.writeByte(0x09)
+        out.writeUTF("palette")
+        out.writeByte(0x0A)
+        out.writeInt(0)
+
+        out.writeByte(0x00)
+        out.close()
+
+        emptyStructureFile.withOutputStream { fos ->
+            new java.util.zip.GZIPOutputStream(fos).withCloseable { gz ->
+                gz.write(baos.toByteArray())
+            }
+        }
+    }
+}
+
+tasks.named('processResources').configure { dependsOn 'generateEmptyGameTestStructure' }
+tasks.named('sourcesJar').configure { dependsOn 'generateEmptyGameTestStructure' }

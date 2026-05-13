@@ -10,43 +10,6 @@ neoForge {
         minecraftVersion = project.findProperty('parchment_minecraft')
         mappingsVersion = project.findProperty('parchment_mappings')
     }
-
-    runs {
-        configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            systemProperty 'forge.logging.console.level', 'debug'
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
-
-        client {
-            client()
-        }
-
-        server {
-            server()
-            programArgument '--nogui'
-        }
-
-        data {
-            data()
-            programArguments.addAll(
-                '--mod', project.findProperty('mod_id'),
-                '--all',
-                '--output', file('src/generated/resources/').absolutePath,
-                '--existing', file('src/main/resources/').absolutePath
-            )
-        }
-
-        gameTestServer {
-            type = 'gameTestServer'
-        }
-    }
-
-    mods {
-        "${project.findProperty('mod_id')}" {
-            sourceSet sourceSets.main
-        }
-    }
 }
 
 sourceSets.main.resources.srcDir 'src/generated/resources'

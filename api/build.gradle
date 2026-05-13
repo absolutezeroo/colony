@@ -3,4 +3,18 @@
 plugins {
     id 'colony.java-conventions'
     id 'colony.publish-conventions'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    neoFormVersion = '1.21.1-20240808.144430'
+
+    parchment {
+        minecraftVersion = project.findProperty('parchment_minecraft')
+        mappingsVersion = project.findProperty('parchment_mappings')
+    }
+}
+
+dependencies {
+    api project(':core')
 }
