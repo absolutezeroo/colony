@@ -16,10 +16,10 @@ import java.util.UUID;
  * Server-side decision path for an incoming colony registration request.
  *
  * <p>
- * Composes pure {@code :common} validators with the Minecraft-aware range check and the {@link ColonyIndex} write to
- * produce a single response payload. Takes the player UUID and position as plain values rather than a
- * {@code ServerPlayer} so the same code path can be exercised by gametest helpers that do not always have a real
- * connected client.
+ * Composes pure {@code :common} validators with the Minecraft-aware range check and the
+ * {@link com.akikazu.colony.common.colony.ColonyIndex} write to produce a single response payload. Takes the player
+ * UUID and position as plain values rather than a {@code ServerPlayer} so the same code path can be exercised by
+ * gametest helpers that do not always have a real connected client.
  *
  * <p>
  * Order matches {@code docs/07-NETWORKING.md}: permission → rate-limit (anti-spam) → name → range → state mutation.

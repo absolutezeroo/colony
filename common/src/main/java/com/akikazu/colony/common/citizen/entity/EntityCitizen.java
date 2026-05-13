@@ -65,6 +65,16 @@ public class EntityCitizen extends PathfinderMob implements Citizen
         return citizenId;
     }
 
+    public void setColony(@Nullable ColonyId colonyId)
+    {
+        this.colony = colonyId;
+    }
+
+    public void setDisplayName(String displayName)
+    {
+        this.displayName = java.util.Objects.requireNonNull(displayName, "displayName");
+    }
+
     @Override
     protected void registerGoals()
     {

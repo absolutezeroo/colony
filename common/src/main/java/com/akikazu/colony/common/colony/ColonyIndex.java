@@ -9,7 +9,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.Collections;
@@ -17,6 +19,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Lightweight, always-loaded index of every colony known to the dedicated server.
@@ -95,6 +99,20 @@ public final class ColonyIndex extends SavedData
     public boolean contains(ColonyId id)
     {
         return entries.containsKey(id);
+    }
+
+    public Optional<ColonyMetadata> find(ColonyId id)
+    {
+        return Optional.ofNullable(entries.get(id));
+    }
+
+    public Stream<ColonyId> allInDimension(ResourceKey<Level> dimension)
+    {
+        Objects.requireNonNull(dimension, "dimension");
+
+        return entries.entrySet().stream()
+                .filter(e -> dimension.equals(e.getValue().dimension()))
+                .map(Map.Entry::getKey);
     }
 
     @Override

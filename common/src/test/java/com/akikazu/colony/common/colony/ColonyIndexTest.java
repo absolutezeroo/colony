@@ -26,7 +26,7 @@ class ColonyIndexTest
     {
         ColonyIndex original = new ColonyIndex();
         ColonyId id = ColonyId.random();
-        ColonyMetadata metadata = new ColonyMetadata(Level.OVERWORLD, new BlockPos(10, 64, -20));
+        ColonyMetadata metadata = new ColonyMetadata(Level.OVERWORLD, new BlockPos(10, 64, -20), 1234L);
 
         assertTrue(original.register(id, metadata));
         assertEquals(1, original.size());
@@ -40,6 +40,7 @@ class ColonyIndexTest
         ColonyMetadata retrieved = Objects.requireNonNull(reloaded.entries().get(id));
         assertEquals(Level.OVERWORLD, retrieved.dimension());
         assertEquals(new BlockPos(10, 64, -20), retrieved.townHallPos());
+        assertEquals(1234L, retrieved.foundedAtTick());
     }
 
     @Test
@@ -47,7 +48,7 @@ class ColonyIndexTest
     {
         ColonyIndex index = new ColonyIndex();
         ColonyId id = ColonyId.random();
-        ColonyMetadata metadata = new ColonyMetadata(Level.OVERWORLD, BlockPos.ZERO);
+        ColonyMetadata metadata = new ColonyMetadata(Level.OVERWORLD, BlockPos.ZERO, 0L);
 
         assertTrue(index.register(id, metadata));
         assertFalse(index.register(id, metadata));
@@ -64,8 +65,8 @@ class ColonyIndexTest
                 net.minecraft.core.registries.Registries.DIMENSION,
                 ResourceLocation.fromNamespaceAndPath("colony", "test_dim"));
 
-        index.register(overworldId, new ColonyMetadata(Level.OVERWORLD, BlockPos.ZERO));
-        index.register(netherId, new ColonyMetadata(custom, new BlockPos(1, 2, 3)));
+        index.register(overworldId, new ColonyMetadata(Level.OVERWORLD, BlockPos.ZERO, 0L));
+        index.register(netherId, new ColonyMetadata(custom, new BlockPos(1, 2, 3), 42L));
 
         CompoundTag tag = index.save(new CompoundTag(), EMPTY_LOOKUP);
         ColonyIndex reloaded = ColonyIndex.load(tag, EMPTY_LOOKUP);
@@ -76,5 +77,6 @@ class ColonyIndexTest
         ColonyMetadata second = Objects.requireNonNull(reloaded.entries().get(netherId));
         assertEquals(Level.OVERWORLD, first.dimension());
         assertEquals(custom, second.dimension());
+        assertEquals(42L, second.foundedAtTick());
     }
 }

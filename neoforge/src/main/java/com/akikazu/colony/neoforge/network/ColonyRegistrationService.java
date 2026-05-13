@@ -22,11 +22,12 @@ public final class ColonyRegistrationService
 
     public static Result register(ServerLevel level, ColonyId id, String name, BlockPos townHallPos)
     {
-        ColonySnapshot snapshot = ColonySnapshot.of(id, name, townHallPos);
         ColonyIndex index = ColonyIndex.get(level);
 
         ResourceKey<Level> dimension = level.dimension();
-        ColonyMetadata metadata = new ColonyMetadata(dimension, townHallPos);
+        long foundedAtTick = level.getGameTime();
+        ColonyMetadata metadata = new ColonyMetadata(dimension, townHallPos, foundedAtTick);
+        ColonySnapshot snapshot = ColonySnapshot.empty(id, name, townHallPos, dimension, foundedAtTick);
 
         boolean accepted = index.register(snapshot.id(), metadata);
 
