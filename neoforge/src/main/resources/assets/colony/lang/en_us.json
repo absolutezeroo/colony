@@ -1,3 +1,7 @@
 {
-    "entity.colony.citizen": "Citizen"
+    "entity.colony.citizen": "Citizen",
+    "block.colony.town_hall": "Town Hall",
+    "item.colony.colony_tool": "Colony Tool",
+    "itemGroup.colony": "Colony",
+    "colony.message.colony_founded": "Colony \"%s\" founded! 4 citizens have arrived."
 }

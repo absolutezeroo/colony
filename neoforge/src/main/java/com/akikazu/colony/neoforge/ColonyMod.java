@@ -4,11 +4,16 @@ import com.akikazu.colony.api.job.JobType;
 import com.akikazu.colony.common.bootstrap.ColonyBootstrap;
 import com.akikazu.colony.common.citizen.entity.EntityCitizen;
 import com.akikazu.colony.core.registry.RegistryView;
+import com.akikazu.colony.neoforge.block.ColonyBlocks;
+import com.akikazu.colony.neoforge.block.event.TownHallPlacementListener;
+import com.akikazu.colony.neoforge.citizen.CitizenSpawnTicker;
 import com.akikazu.colony.neoforge.client.ColonyClientEvents;
 import com.akikazu.colony.neoforge.command.ColonyCommands;
 import com.akikazu.colony.neoforge.entity.ColonyEntities;
 import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
 import com.akikazu.colony.neoforge.gametest.EntityCitizenGameTests;
+import com.akikazu.colony.neoforge.item.ColonyCreativeTabs;
+import com.akikazu.colony.neoforge.item.ColonyItems;
 import com.akikazu.colony.neoforge.network.ColonyPayloads;
 import com.akikazu.colony.neoforge.network.ColonyServerSession;
 
@@ -51,6 +56,9 @@ public final class ColonyMod
         ColonyBootstrap.register();
 
         ColonyEntities.register(modEventBus);
+        ColonyBlocks.register(modEventBus);
+        ColonyItems.register(modEventBus);
+        ColonyCreativeTabs.register(modEventBus);
 
         modEventBus.addListener(this::onCommonSetup);
         modEventBus.addListener(this::onCreateAttributes);
@@ -68,6 +76,8 @@ public final class ColonyMod
         NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(this::onPlayerChangedDimension);
+        NeoForge.EVENT_BUS.register(new TownHallPlacementListener());
+        NeoForge.EVENT_BUS.register(new CitizenSpawnTicker());
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event)

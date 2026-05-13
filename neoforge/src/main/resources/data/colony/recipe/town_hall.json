@@ -1,0 +1,17 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "LLL",
+        "LGL",
+        "OOO"
+    ],
+    "key": {
+        "L": { "item": "minecraft:oak_log" },
+        "G": { "item": "minecraft:gold_ingot" },
+        "O": { "item": "minecraft:oak_planks" }
+    },
+    "result": {
+        "id": "colony:town_hall",
+        "count": 1
+    }
+}
