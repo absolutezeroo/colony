@@ -123,6 +123,15 @@ Do **not** add an entry for:
 
 `docs/04-BUILDING-SYSTEM.md` §Validation pipeline (lines 356-371) describes a 6-pass async evaluation: structural enclosure, material analysis, functional block scan, room evaluations, tier evaluation, notification. Today only the placement-time `ZoneValidator` (synchronous, on the server thread, four checks) exists. This is the right scope for Month 2 — tiers and rooms land later — but the doc reads as if the full pipeline is in place. Keep the doc honest by either marking that section "V1 month 4+" or splitting it from the placement-time validator that actually exists today.
 
+### BuildingScreen Structure tab not implemented
+
+**Status:** DEFERRED
+**Severity:** LOW
+**Discovered:** Phase 1, month 2 (2026-05)
+**Target:** Phase 1, month 3 (Building GUI prompt)
+
+The room requirement prompt asks for a Structure tab in `BuildingScreen` that surfaces each designated room's `RoomStatus` (green check for valid, red X with failure tooltip for invalid) and a "Re-evaluate" button. The `BuildingScreen` itself does not yet exist — the entire Building GUI stack lands in a later prompt. `RoomValidator.reevaluate(level, room)` is in place as the server-side hook the future button will invoke; the GUI work is the only deferred piece.
+
 ### `AxisAlignedOuterZone` shape diverges from doc spec
 
 **Status:** FIXED-IN-CODE
