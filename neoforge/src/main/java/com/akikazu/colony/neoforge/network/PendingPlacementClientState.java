@@ -27,11 +27,13 @@ public final class PendingPlacementClientState
         if (hutTypeId == null)
         {
             current = null;
+            ZonePaintingClientState.clear();
 
             return;
         }
 
         current = new Snapshot(hutTypeId, payload.targetPos());
+        ZonePaintingClientState.clear();
     }
 
     public static @Nullable Snapshot current()

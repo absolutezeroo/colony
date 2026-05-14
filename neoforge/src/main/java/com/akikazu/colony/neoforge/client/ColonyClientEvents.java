@@ -3,6 +3,7 @@ package com.akikazu.colony.neoforge.client;
 import com.akikazu.colony.neoforge.client.entity.EntityCitizenRenderer;
 import com.akikazu.colony.neoforge.client.render.PendingPlacementHudOverlay;
 import com.akikazu.colony.neoforge.client.render.PendingPlacementOverlay;
+import com.akikazu.colony.neoforge.client.render.ZonePaintingOverlay;
 import com.akikazu.colony.neoforge.entity.ColonyEntities;
 
 import net.neoforged.api.distmarker.Dist;
@@ -29,6 +30,7 @@ public final class ColonyClientEvents
         modEventBus.addListener(PendingPlacementHudOverlay::onRegisterGuiLayers);
         ColonyToolKeyBindings.register();
         PendingPlacementOverlay.register();
+        ZonePaintingOverlay.register();
         PendingPlacementKeyHandler.register();
     }
 

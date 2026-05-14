@@ -8,7 +8,7 @@
     "item.colony.colony_tool.mode.link": "Link",
     "item.colony.colony_tool.mode.inspect": "Inspect",
     "item.colony.colony_tool.hint.scroll": "Shift+Scroll: change mode",
-    "item.colony.colony_tool.hint.zone": "Right-click: start zone painting (V2.3)",
+    "item.colony.colony_tool.hint.zone": "Right-click: paint zone corners (alternating)",
     "item.colony.colony_tool.hint.storage": "Right-click chest: type as storage (V2.4)",
     "item.colony.colony_tool.hint.link": "Right-click anchor: link to building (later)",
     "item.colony.colony_tool.hint.inspect": "Right-click: inspect block",
@@ -21,6 +21,13 @@
     "colony.message.pending_placement.no_colony_tool": "You need a Colony Tool. Use /colony wand restore.",
     "colony.message.pending_placement.started": "Place: %s. Designate the outer zone, then press Enter to confirm or Esc to cancel.",
     "colony.message.pending_placement.cancelled": "Placement cancelled.",
-    "colony.message.pending_placement.confirmed_stub": "Placement confirmed. Actual zone painting is implemented in prompt 2.3.",
-    "colony.hud.pending_placement.label": "Place: %s"
+    "colony.message.pending_placement.building_created": "Building created!",
+    "colony.message.zone_validation.too_small": "Zone too small (%d/%d blocks).",
+    "colony.message.zone_validation.too_large": "Zone too large (%d/%d blocks).",
+    "colony.message.zone_validation.does_not_contain_hut": "Zone must contain the Hut at (%d, %d, %d).",
+    "colony.message.zone_validation.overlap": "Zone overlaps another building (%s).",
+    "colony.message.zone_validation.outside_loaded_chunks": "Zone extends into unloaded chunks.",
+    "colony.hud.pending_placement.label": "Place: %s",
+    "colony.hud.pending_placement.volume": "Volume: %d / %d",
+    "colony.hud.pending_placement.corners_missing": "Right-click two blocks to set the zone corners (keep right-clicking to adjust)."
 }
