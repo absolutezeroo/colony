@@ -1,5 +1,9 @@
 package com.akikazu.colony.neoforge.network;
 
+import com.akikazu.colony.api.building.BuildingId;
+import com.akikazu.colony.api.item.ColonyToolMode;
+import com.akikazu.colony.common.building.BuildingIndex;
+import com.akikazu.colony.common.building.BuildingMetadata;
 import com.akikazu.colony.common.building.placement.BuildingPlacementService;
 import com.akikazu.colony.common.building.placement.PendingPlacement;
 import com.akikazu.colony.common.building.placement.PendingPlacementManager;
@@ -9,8 +13,10 @@ import com.akikazu.colony.common.building.validation.ZoneValidationError.Outside
 import com.akikazu.colony.common.building.validation.ZoneValidationError.OverlapsExistingBuilding;
 import com.akikazu.colony.common.building.validation.ZoneValidationError.TooLarge;
 import com.akikazu.colony.common.building.validation.ZoneValidationError.TooSmall;
+import com.akikazu.colony.common.storage.impl.SlotSelectionManager;
 import com.akikazu.colony.neoforge.ColonyMod;
 import com.akikazu.colony.neoforge.block.ColonyBlocks;
+import com.akikazu.colony.neoforge.item.ColonyDataComponents;
 import com.akikazu.colony.neoforge.item.ColonyItems;
 import com.akikazu.colony.neoforge.item.ColonyToolItem;
 
@@ -78,6 +84,11 @@ public final class ColonyPayloads
                 ConfirmZonePaintingPayload.STREAM_CODEC,
                 ColonyPayloads::handleConfirmZonePainting);
 
+        registrar.playToServer(
+                StartChestDesignationPayload.TYPE,
+                StartChestDesignationPayload.STREAM_CODEC,
+                ColonyPayloads::handleStartChestDesignation);
+
         registrar.playToClient(
                 RegisterColonyResponsePayload.TYPE,
                 RegisterColonyResponsePayload.STREAM_CODEC,
@@ -87,6 +98,16 @@ public final class ColonyPayloads
                 SetPendingPlacementClientPayload.TYPE,
                 SetPendingPlacementClientPayload.STREAM_CODEC,
                 ColonyPayloads::handleSetPendingPlacement);
+
+        registrar.playToClient(
+                ChestTypedClientPayload.TYPE,
+                ChestTypedClientPayload.STREAM_CODEC,
+                ColonyPayloads::handleChestTyped);
+
+        registrar.playToClient(
+                ActivateStorageModePayload.TYPE,
+                ActivateStorageModePayload.STREAM_CODEC,
+                ColonyPayloads::handleActivateStorageMode);
     }
 
     public static boolean hasRegistrationPermission(ServerPlayer player)
@@ -321,5 +342,68 @@ public final class ColonyPayloads
     private static void handleSetPendingPlacement(SetPendingPlacementClientPayload payload, IPayloadContext context)
     {
         PendingPlacementClientState.apply(payload);
+    }
+
+    private static void handleChestTyped(ChestTypedClientPayload payload, IPayloadContext context)
+    {
+        ChestTypingClientState.apply(payload);
+    }
+
+    private static void handleStartChestDesignation(StartChestDesignationPayload payload, IPayloadContext context)
+    {
+        if (!(context.player() instanceof ServerPlayer sender))
+        {
+            return;
+        }
+
+        MinecraftServer server = sender.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        ServerLevel level = sender.serverLevel();
+        BuildingId building = payload.building();
+        Optional<BuildingMetadata> metadataOpt = BuildingIndex.get(level).find(building);
+
+        if (metadataOpt.isEmpty())
+        {
+            return;
+        }
+
+        boolean hasSlot = metadataOpt.get().hutType().storageSlots().stream()
+                .anyMatch(s -> s.slotId().equals(payload.slotId()));
+
+        if (!hasSlot)
+        {
+            return;
+        }
+
+        SlotSelectionManager manager = ColonyServerSession.get(server).slotSelections();
+        manager.arm(sender.getUUID(), building, payload.slotId(), server.getTickCount());
+
+        ItemStack mainHand = sender.getMainHandItem();
+
+        if (mainHand.is(ColonyItems.COLONY_TOOL.get()))
+        {
+            mainHand.set(ColonyDataComponents.TOOL_MODE.get(), ColonyToolMode.STORAGE);
+        }
+        else
+        {
+            ItemStack offHand = sender.getOffhandItem();
+
+            if (offHand.is(ColonyItems.COLONY_TOOL.get()))
+            {
+                offHand.set(ColonyDataComponents.TOOL_MODE.get(), ColonyToolMode.STORAGE);
+            }
+        }
+
+        PacketDistributor.sendToPlayer(sender, new ActivateStorageModePayload(building, payload.slotId()));
+    }
+
+    private static void handleActivateStorageMode(ActivateStorageModePayload payload, IPayloadContext context)
+    {
+        StorageDesignationClientState.apply(payload);
     }
 }

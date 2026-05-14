@@ -163,6 +163,7 @@ public final class ColonyMod
         ColonyServerSession session = ColonyServerSession.get(server);
         session.subscriptions().forgetPlayer(serverPlayer.getUUID());
         session.toolCycleLimiter().forget(serverPlayer.getUUID());
+        session.slotSelections().clear(serverPlayer.getUUID());
     }
 
     private void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event)

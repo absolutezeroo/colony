@@ -1,26 +1,34 @@
 package com.akikazu.colony.neoforge.item;
 
 import com.akikazu.colony.api.item.ColonyToolMode;
+import com.akikazu.colony.common.storage.impl.SlotSelectionContext;
+import com.akikazu.colony.common.storage.impl.SlotSelectionManager;
 import com.akikazu.colony.neoforge.network.ColonyServerSession;
+import com.akikazu.colony.neoforge.storage.ChestTypingDispatcher;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The multi-purpose tool the player receives at colony foundation. The cycled {@link ColonyToolMode} is persisted on
@@ -28,10 +36,9 @@ import java.util.List;
  * and is committed to the stack by the {@code CycleColonyToolModePayload} server handler.
  *
  * <p>
- * The {@link #use(Level, Player, InteractionHand)} branches by mode. ZONE painting itself is driven client-side from
- * {@code PendingPlacementKeyHandler} (right-clicks are swallowed before reaching the server while a pending placement
- * is active); the server-side branch here only fires when no pending placement exists, in which case it points the
- * player at the correct trigger. STORAGE/LINK remain placeholder until their respective workflows land.
+ * Right-click dispatch splits across {@link #useOn(UseOnContext)} and {@link #use(Level, Player, InteractionHand)}:
+ * {@code useOn} handles cases that target a specific block — STORAGE mode types the clicked chest — while {@code use}
+ * runs when no block is targeted (and surfaces hints for modes that have nothing to do without a target).
  */
 public final class ColonyToolItem extends Item
 {
@@ -60,6 +67,73 @@ public final class ColonyToolItem extends Item
     }
 
     @Override
+    public InteractionResult useOn(UseOnContext context)
+    {
+        ItemStack stack = context.getItemInHand();
+        ColonyToolMode mode = getMode(stack);
+
+        if (mode != ColonyToolMode.STORAGE)
+        {
+            return InteractionResult.PASS;
+        }
+
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+
+        if (level.isClientSide())
+        {
+            if (level.getBlockState(pos).getBlock() instanceof ChestBlock)
+            {
+                return InteractionResult.SUCCESS;
+            }
+
+            return InteractionResult.PASS;
+        }
+
+        Player player = context.getPlayer();
+
+        if (!(player instanceof ServerPlayer serverPlayer) || !(level instanceof ServerLevel serverLevel))
+        {
+            return InteractionResult.PASS;
+        }
+
+        if (!(serverLevel.getBlockState(pos).getBlock() instanceof ChestBlock))
+        {
+            return InteractionResult.PASS;
+        }
+
+        handleStorageClick(serverLevel, serverPlayer, pos);
+
+        return InteractionResult.SUCCESS;
+    }
+
+    private static void handleStorageClick(ServerLevel level, ServerPlayer player, BlockPos pos)
+    {
+        MinecraftServer server = player.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        SlotSelectionManager selections = ColonyServerSession.get(server).slotSelections();
+        Optional<SlotSelectionContext> selectionOpt = selections.current(player.getUUID(), server.getTickCount());
+
+        if (selectionOpt.isEmpty())
+        {
+            player.sendSystemMessage(Component.translatable("colony.message.storage.no_selection"));
+
+            return;
+        }
+
+        SlotSelectionContext selection = selectionOpt.get();
+
+        ChestTypingDispatcher.assign(level, player, pos, selection.building(), selection.slotId());
+
+        selections.clear(player.getUUID());
+    }
+
+    @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand)
     {
         ItemStack stack = player.getItemInHand(hand);
@@ -75,7 +149,7 @@ public final class ColonyToolItem extends Item
         {
             case ZONE -> handleZoneUse(player);
             case STORAGE -> player.sendSystemMessage(
-                    Component.translatable("colony.message.placeholder.storage_typing"));
+                    Component.translatable("colony.message.storage.no_selection"));
             case LINK -> player.sendSystemMessage(
                     Component.translatable("colony.message.placeholder.anchor_linking"));
             case INSPECT -> player.sendSystemMessage(describeLookedAtBlock(level, player));
