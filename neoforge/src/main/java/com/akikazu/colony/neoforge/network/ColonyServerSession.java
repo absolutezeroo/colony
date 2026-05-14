@@ -3,6 +3,7 @@ package com.akikazu.colony.neoforge.network;
 import com.akikazu.colony.common.building.placement.PendingPlacementManager;
 import com.akikazu.colony.common.colony.registration.RegistrationRateLimiter;
 import com.akikazu.colony.common.storage.impl.SlotSelectionManager;
+import com.akikazu.colony.common.workzone.impl.AnchorSelectionManager;
 
 import net.minecraft.server.MinecraftServer;
 
@@ -35,6 +36,8 @@ public final class ColonyServerSession
 
     private final SlotSelectionManager slotSelections;
 
+    private final AnchorSelectionManager anchorSelections;
+
     private ColonyServerSession()
     {
         this.rateLimiter = RegistrationRateLimiter.defaultLimiter();
@@ -42,6 +45,7 @@ public final class ColonyServerSession
         this.subscriptions = new ColonySubscriptionService();
         this.pendingPlacements = new PendingPlacementManager();
         this.slotSelections = new SlotSelectionManager();
+        this.anchorSelections = new AnchorSelectionManager();
     }
 
     public static ColonyServerSession get(MinecraftServer server)
@@ -77,5 +81,10 @@ public final class ColonyServerSession
     public SlotSelectionManager slotSelections()
     {
         return slotSelections;
+    }
+
+    public AnchorSelectionManager anchorSelections()
+    {
+        return anchorSelections;
     }
 }
