@@ -87,6 +87,51 @@ Do **not** add an entry for:
 
 `docs/01-ARCHITECTURE.md` §Module structure positions `:testmod` as the SPI hole detector: it should compile against `:api` + vanilla MC only, so that any NeoForge leak through the API surface fails the build. Today `:testmod` applies `colony.mod-conventions` (full NeoForge) because the only entry point available is `@Mod`/`IEventBus` from FML — the `ColonyAddon` interface described in docs/01 lines 39 and 86 hasn't been written yet. As long as testmod can call NeoForge directly, the detector cannot fire. Switch `:testmod` to `colony.java-conventions` + `neoForge { neoFormVersion = ... }` once the addon SPI exists.
 
+### PendingPlacement state not persisted across disconnect
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 2 (2026-05)
+**Target:** Phase 1, month 3 or later (when SavedData parity with `ColonyIndex` becomes worth the lift)
+
+`docs/04-BUILDING-SYSTEM.md` §Placement workflow line 41 states: *"If the player disconnects during `PendingPlacement`, the state is saved and resumable via `/colony resume` at reconnect."* The current `PendingPlacementManager` is a plain `ConcurrentHashMap<UUID, PendingPlacement>` held in memory; disconnecting mid-paint drops the pending and there is no `/colony resume` command. Acceptable for V1 because the painting workflow is short (seconds, not minutes) and the Hut block stays in inventory, but the doc claim is currently a lie. Either implement persistence or weaken the doc to "transient" — both are fine.
+
+### Outer-zone enclosure check is not implemented
+
+**Status:** OPEN
+**Severity:** MEDIUM
+**Discovered:** Phase 1, month 2 (2026-05)
+**Target:** Phase 1, month 3 (alongside room painting and the broader validation pipeline)
+
+`docs/04-BUILDING-SYSTEM.md` §Placement workflow item 5.3 requires that *"the outer zone must enclose at least one valid interior space (flood-fill yields a non-trivial connected air region)"*. `ZoneValidator` only checks volume bounds, hut containment, building overlap, and chunk loading. A player can today register a 1×1 column of solid stone as an outer zone and the server accepts it. Land flood-fill enclosure detection with the broader async validation pipeline; until then, the zone is purely a spatial reservation, not proof of a functional building.
+
+### `BuildingIndex` is dimension-blind
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 2 (2026-05)
+**Target:** Before huts are placed outside the overworld
+
+`BuildingMetadata` carries `ColonyId`, `HutType`, `BlockPos`, and `AxisAlignedOuterZone` — no `ResourceKey<Level>`. `BuildingIndex` is stored as overworld SavedData and treats every entry as if it lives in one global coordinate space. Two huts at the same numeric coordinates in different dimensions would falsely report `hasOverlap`, and `findByPosition` would return whichever was registered first. ColonyIndex has the dimension field; BuildingIndex inherited the simpler shape from prompt 2.3 because every test case stayed in `minecraft:overworld`. Add a `ResourceKey<Level>` field to `BuildingMetadata` (with codec migration) once nether/end colony support is on the table.
+
+### Outer-zone validation pipeline is single-pass
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 2 (2026-05)
+**Target:** Phase 1, months 4-7 (structural/material/tier evaluation)
+
+`docs/04-BUILDING-SYSTEM.md` §Validation pipeline (lines 356-371) describes a 6-pass async evaluation: structural enclosure, material analysis, functional block scan, room evaluations, tier evaluation, notification. Today only the placement-time `ZoneValidator` (synchronous, on the server thread, four checks) exists. This is the right scope for Month 2 — tiers and rooms land later — but the doc reads as if the full pipeline is in place. Keep the doc honest by either marking that section "V1 month 4+" or splitting it from the placement-time validator that actually exists today.
+
+### `AxisAlignedOuterZone` shape diverges from doc spec
+
+**Status:** FIXED-IN-CODE
+**Severity:** LOW
+**Discovered:** Phase 1, month 2 (2026-05)
+**Target:** Doc update only
+
+`docs/04-BUILDING-SYSTEM.md` lines 51-58 specifies `record AxisAlignedOuterZone(UUID id, BlockPos hutBlockPosition, int north, south, west, east, up, down)` — directional offsets tethered to the hut block. The actual implementation is `record AxisAlignedOuterZone(BlockPos min, BlockPos max) implements OuterZone` with a normalizing `fromCorners` factory. The new shape is strictly simpler (overlap/containment are arithmetic on two corners) and makes the codec trivial. Update doc 04 to match the implementation; no code change needed.
+
 ---
 
 ## Risk-flagged (advance warnings)

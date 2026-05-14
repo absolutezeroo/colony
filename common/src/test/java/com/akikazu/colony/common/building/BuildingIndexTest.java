@@ -7,10 +7,13 @@ import com.akikazu.colony.common.bootstrap.ColonyBootstrap;
 import com.akikazu.colony.common.building.impl.ResidenceHutType;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BuildingIndexTest
 {
     private static final ColonyId COLONY = ColonyId.random();
+    private static final RegistryAccess EMPTY_LOOKUP = RegistryAccess.EMPTY;
 
     @BeforeAll
     static void registerHuts()
@@ -108,6 +112,28 @@ class BuildingIndexTest
                 .orElseThrow());
 
         assertTrue(index.findByPosition(new BlockPos(100, 0, 0)).isEmpty());
+    }
+
+    @Test
+    void persistsAndReloads()
+    {
+        BuildingIndex original = new BuildingIndex();
+        BuildingId id = BuildingId.random();
+        AxisAlignedOuterZone zone = new AxisAlignedOuterZone(new BlockPos(0, 0, 0), new BlockPos(5, 5, 5));
+        BlockPos hutPos = new BlockPos(2, 2, 2);
+
+        assertTrue(original.register(id, residenceAt(hutPos, zone)));
+
+        CompoundTag saved = original.save(new CompoundTag(), EMPTY_LOOKUP);
+        BuildingIndex reloaded = BuildingIndex.load(saved, EMPTY_LOOKUP);
+
+        assertEquals(1, reloaded.size());
+
+        BuildingMetadata retrieved = Objects.requireNonNull(reloaded.entries().get(id));
+        assertEquals(COLONY, retrieved.colony());
+        assertSame(ResidenceHutType.INSTANCE, retrieved.hutType());
+        assertEquals(hutPos, retrieved.hutPos());
+        assertEquals(zone, retrieved.outerZone());
     }
 
     @Test

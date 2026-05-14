@@ -40,4 +40,4 @@ repo/
 !**/src/**/repo/
 
 docs/prompts/
-common/logs/
+**/logs/

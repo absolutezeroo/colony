@@ -28,7 +28,7 @@ import java.util.UUID;
  * Server-side orchestrator for the moment the player presses Enter on a painted zone.
  *
  * <p>
- * Splits the workflow into deterministic steps so {@link com.akikazu.colony.neoforge.network.ColonyPayloads} can call
+ * Splits the workflow into deterministic steps so {@code ColonyPayloads} (in {@code :neoforge}) can call
  * {@link #attemptPlacement} from a payload handler and GameTests can call it from a synthetic context. The loader
  * adapter passes the {@link BlockState} to place — the service is loader-agnostic; the actual block class lives in
  * {@code :neoforge}.

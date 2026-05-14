@@ -5,6 +5,55 @@ All notable changes to Colony are recorded here. Format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Pre-V1.0 pre-release
 suffixes are used per `docs/19-RELEASE-COMMUNICATION.md`.
 
+## [0.3.0-alpha] - 2026-05-14
+
+Phase 1 Month 2 milestone: the Building System lands. A player with a Town Hall
+can pull out a Colony Tool, switch between four modes, intercept a Hut block
+right-click, and paint an axis-aligned outer zone to register a Building.
+
+### Added
+- `ColonyToolMode` enum (`Zone`, `Storage`, `Link`, `Inspect`) backed by a
+  data component; shift+scroll cycles through modes, server-validated, rate-limited.
+- HUD overlay showing the current Colony Tool mode plus per-mode hint text;
+  pending-placement HUD with volume readout and corner-state guidance.
+- `/colony wand restore` (refunds a Colony Tool if lost) and `/colony info`
+  (lists colonies and their buildings). Respawn-time top-up retained from Month 1.
+- `HutType` SPI in `:api` plus first concrete `ResidenceHutType` registered
+  through `ColonyBootstrap`.
+- `ResidenceHutBlock` + `ResidenceHutBlockItem` intercepting placement: with
+  no Colony Tool, the player gets a translated chat error; otherwise the
+  server enters `PendingPlacement` state and the client renders a ghost preview.
+- `PendingPlacementManager` (in-memory, per-player) tracking the placement
+  workflow; `ConfirmZonePaintingPayload` and `CancelPendingPlacementPayload`
+  C2S payloads driving the lifecycle.
+- `AxisAlignedOuterZone` record with `contains`, `volume`, `blocksInZone`,
+  `overlaps`, and a normalizing `fromCorners` factory. Persisted via `Codec`.
+- `ZoneValidator` returning a sealed `ZoneValidationResult` (`Valid`/`Invalid`)
+  with five `ZoneValidationError` variants — `TooSmall`, `TooLarge`,
+  `DoesNotContainHutPos`, `OverlapsExistingBuilding`, `OutsideLoadedChunks`
+  — each mapped to a translated chat key.
+- `BuildingIndex` `SavedData` mirroring `ColonyIndex`: register, find,
+  `allInColony`, `findByPosition`, `hasOverlap`, codec-based persistence.
+- Two-click zone painting on the client with real-time AABB wireframe;
+  color-coded green/yellow/red by local approximate validity.
+- GameTests: 5 in `BuildingPlacementGameTests`, 3 in `PendingPlacementGameTests`,
+  2 in `ColonyToolGameTests`. 22 GameTests total now passing.
+- Unit tests: `AxisAlignedOuterZoneTest`, `ColonyToolModeTest`,
+  `BuildingIndexTest` (incl. save/reload round-trip), `PendingPlacementManagerTest`,
+  `ZoneValidatorTest`. 99 unit tests total across `:api` / `:core` / `:common`.
+- Tech-debt entries: PendingPlacement non-persistence, missing enclosure
+  flood-fill, dimension-blind BuildingIndex, single-pass validation pipeline,
+  doc-vs-code drift on `AxisAlignedOuterZone` shape.
+
+### Changed
+- `.gitignore` widened from `common/logs/` to `**/logs/` (covers test-run
+  log dirs that show up in any module).
+
+### Save format
+- Adds `colony_building_index` SavedData. 0.2.0-alpha saves load cleanly (no
+  buildings, empty index); pre-V1 alphas still do not guarantee forward
+  compatibility, but the placement format is stable for the duration of Phase 1.
+
 ## [0.2.0-alpha] - 2026-05-14
 
 Phase 1 Month 1 milestone: a player can place a Town Hall, found a colony, and
