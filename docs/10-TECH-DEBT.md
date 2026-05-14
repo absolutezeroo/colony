@@ -69,6 +69,15 @@ Do **not** add an entry for:
 
 `CitizenNamePool.randomName` reads from an in-code constant list. `docs/05-CITIZEN-SYSTEM.md` §Spawning specifies "randomly assigned name from the lang JSON pool". Migrate when the datapack/lang pipeline is wired.
 
+### Colony Tool respawn restore is unconditional
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 1 (2026-05)
+**Target:** When `ColonyMetadata` carries the founder/owner UUID
+
+`onPlayerRespawn` in `ColonyMod` grants any respawning player a Colony Tool if they don't already have one, regardless of whether they actually own a colony. The desired behavior (see `docs/04-BUILDING-SYSTEM.md` "Recovery") is to gate the restore on "the player has at least one colony associated with their UUID", but `ColonyManager`/`ColonyMetadata` currently store only the founding tick, not the founder UUID. Harden once an owner field exists or a `playerOwnedColonies(UUID)` index is added.
+
 ### `:testmod` SPI hole detector is disarmed
 
 **Status:** OPEN
