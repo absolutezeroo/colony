@@ -23,6 +23,8 @@ public final class ColonyClientEvents
     public static void register(IEventBus modEventBus)
     {
         modEventBus.addListener(ColonyClientEvents::onRegisterRenderers);
+        modEventBus.addListener(ColonyToolHud::onRegisterGuiLayers);
+        ColonyToolKeyBindings.register();
     }
 
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event)
