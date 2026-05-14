@@ -10,6 +10,7 @@ import com.akikazu.colony.neoforge.citizen.CitizenSpawnTicker;
 import com.akikazu.colony.neoforge.client.ColonyClientEvents;
 import com.akikazu.colony.neoforge.command.ColonyCommands;
 import com.akikazu.colony.neoforge.entity.ColonyEntities;
+import com.akikazu.colony.neoforge.gametest.BuildingPlacementGameTests;
 import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
 import com.akikazu.colony.neoforge.gametest.ColonyToolGameTests;
 import com.akikazu.colony.neoforge.gametest.EntityCitizenGameTests;
@@ -98,6 +99,7 @@ public final class ColonyMod
 
     private void onRegisterGameTests(RegisterGameTestsEvent event)
     {
+        event.register(BuildingPlacementGameTests.class);
         event.register(ColonyRegistrationGameTest.class);
         event.register(ColonyToolGameTests.class);
         event.register(EntityCitizenGameTests.class);

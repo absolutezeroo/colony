@@ -56,13 +56,13 @@ public final class PendingPlacementGameTests
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         UUID uuid = player.getUUID();
 
-        giveColonyTool(player);
-
         BlockPos floorPos = helper.absolutePos(new BlockPos(1, 1, 1));
         level.setBlock(floorPos, Blocks.STONE.defaultBlockState(), 3);
 
         ItemStack hutStack = new ItemStack(ColonyItems.RESIDENCE_HUT.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, hutStack);
+
+        giveColonyTool(player);
 
         InteractionResult result = simulateUseOn(level, player, hutStack, floorPos);
 
