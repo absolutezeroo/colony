@@ -75,7 +75,7 @@ public final class ColonyToolItem extends Item
         {
             case ZONE -> handleZoneUse(player);
             case STORAGE -> player.sendSystemMessage(
-                    Component.literal("Storage typing will be available in prompt 2.4"));
+                    Component.translatable("colony.message.placeholder.storage_typing"));
             case LINK -> player.sendSystemMessage(
                     Component.literal("Anchor linking will be available in later prompt"));
             case INSPECT -> player.sendSystemMessage(describeLookedAtBlock(level, player));
