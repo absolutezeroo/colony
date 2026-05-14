@@ -13,6 +13,7 @@ import com.akikazu.colony.neoforge.entity.ColonyEntities;
 import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
 import com.akikazu.colony.neoforge.gametest.ColonyToolGameTests;
 import com.akikazu.colony.neoforge.gametest.EntityCitizenGameTests;
+import com.akikazu.colony.neoforge.gametest.PendingPlacementGameTests;
 import com.akikazu.colony.neoforge.gametest.TownHallFoundingGameTests;
 import com.akikazu.colony.neoforge.item.ColonyCreativeTabs;
 import com.akikazu.colony.neoforge.item.ColonyDataComponents;
@@ -100,6 +101,7 @@ public final class ColonyMod
         event.register(ColonyRegistrationGameTest.class);
         event.register(ColonyToolGameTests.class);
         event.register(EntityCitizenGameTests.class);
+        event.register(PendingPlacementGameTests.class);
         event.register(TownHallFoundingGameTests.class);
     }
 
