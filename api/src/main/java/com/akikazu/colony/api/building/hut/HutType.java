@@ -1,6 +1,7 @@
 package com.akikazu.colony.api.building.hut;
 
 import com.akikazu.colony.api.storage.StorageSlot;
+import com.akikazu.colony.api.workzone.AnchorSlot;
 import com.akikazu.colony.core.registry.Identifier;
 
 import net.minecraft.network.chat.Component;
@@ -16,8 +17,8 @@ import java.util.List;
  * <p>
  * Each registered hut exposes a stable identifier and a localized display name used in HUDs, chat acknowledgements, and
  * GUI labels during the {@code PendingPlacement} workflow. {@link #storageSlots()} declares the typed-chest slots the
- * hut owns; new hut types override it, existing ones inherit an empty list so they remain source-compatible until they
- * opt in.
+ * hut owns; {@link #anchorSlots()} declares the work-zone anchors it can link. Both default to empty so existing hut
+ * types stay source-compatible until they opt in.
  */
 @ApiStatus.NonExtendable
 public interface HutType
@@ -27,6 +28,11 @@ public interface HutType
     Component displayName();
 
     default List<StorageSlot> storageSlots()
+    {
+        return List.of();
+    }
+
+    default List<AnchorSlot> anchorSlots()
     {
         return List.of();
     }
