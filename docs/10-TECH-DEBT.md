@@ -33,7 +33,50 @@ Do **not** add an entry for:
 
 ## Active debt
 
-(Empty at project start. Populated as development progresses.)
+### EntityCitizen state model is a stub
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 1 (2026-05)
+**Target:** Phase 1, months 2-4 as the trait/mood/job/intent systems land
+
+`EntityCitizen` currently holds only `citizenId`, `displayName`, and a nullable `ColonyId`. The full field set described in `docs/05-CITIZEN-SYSTEM.md` §Entity model — appearance, home/work building, job, state, mood, needs, traits, skills, intent queue — is not present. This is by design for Month 1 (deliberate scope cut) but the doc-vs-code gap is wide enough to flag.
+
+### Citizen spawn search does not expand per attempt
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 1 (2026-05)
+**Target:** Phase 2
+
+`docs/05-CITIZEN-SYSTEM.md` §Spawning specifies "spawn search expands by 2 blocks per attempt". The current `CitizenSpawner.pickCandidate` samples uniformly inside a fixed `CITIZEN_SPAWN_SEARCH_RADIUS` (6) and walks vertically from `townHall.y` outward to find a valid Y. Works for flat terrain (which all test rigs and the founding flow currently rely on); in steep or buried terrain the founding cohort may fail silently after the retry-timeout. Phase 2 should either implement the documented expansion or replace the picker with a surface-walk over the full anchor footprint.
+
+### `isValidSpawn` uses 1-block clearance, not full mob height
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 1 (2026-05)
+**Target:** Phase 2
+
+`CitizenSpawner.isValidSpawn` checks one cell of air above the candidate. Vanilla `PathfinderMob` is 1.95 blocks tall by default, so a citizen spawned with a 2-block ceiling has zero head clearance and any future `MAX_HEALTH`/hitbox tweak could clip it into the block above. Acceptable today because every founding scenario provides ≥2 air blocks; revisit when player-placed Town Halls in heterogeneous terrain land.
+
+### Citizen names hardcoded, not datapack-driven
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1, month 1 (2026-05)
+**Target:** When the data-driven content layer (`docs/06-DATA-DRIVEN.md`) lands
+
+`CitizenNamePool.randomName` reads from an in-code constant list. `docs/05-CITIZEN-SYSTEM.md` §Spawning specifies "randomly assigned name from the lang JSON pool". Migrate when the datapack/lang pipeline is wired.
+
+### `:testmod` SPI hole detector is disarmed
+
+**Status:** OPEN
+**Severity:** MEDIUM
+**Discovered:** Phase 1, month 1 (2026-05)
+**Target:** When the `ColonyAddon` / `ColonyAddonContext` SPI lands in `:api`
+
+`docs/01-ARCHITECTURE.md` §Module structure positions `:testmod` as the SPI hole detector: it should compile against `:api` + vanilla MC only, so that any NeoForge leak through the API surface fails the build. Today `:testmod` applies `colony.mod-conventions` (full NeoForge) because the only entry point available is `@Mod`/`IEventBus` from FML — the `ColonyAddon` interface described in docs/01 lines 39 and 86 hasn't been written yet. As long as testmod can call NeoForge directly, the detector cannot fire. Switch `:testmod` to `colony.java-conventions` + `neoForge { neoFormVersion = ... }` once the addon SPI exists.
 
 ---
 

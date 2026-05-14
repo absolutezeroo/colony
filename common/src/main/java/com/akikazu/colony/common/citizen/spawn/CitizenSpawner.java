@@ -10,6 +10,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -208,9 +209,9 @@ public final class CitizenSpawner
 
         for (int attempt = 0; attempt < CitizenSpawnConfig.CITIZEN_SPAWN_RETRY_ATTEMPTS; attempt++)
         {
-            BlockPos candidate = pickCandidate(townHallPos, random);
+            BlockPos candidate = pickCandidate(level, townHallPos, random);
 
-            if (!isValidSpawn(level, candidate))
+            if (candidate == null)
             {
                 continue;
             }
@@ -251,15 +252,34 @@ public final class CitizenSpawner
         return Optional.empty();
     }
 
-    private static BlockPos pickCandidate(BlockPos townHallPos, RandomSource random)
+    private static @Nullable BlockPos pickCandidate(ServerLevel level, BlockPos townHallPos, RandomSource random)
     {
         int radius = CitizenSpawnConfig.CITIZEN_SPAWN_SEARCH_RADIUS;
         int vertical = CitizenSpawnConfig.CITIZEN_SPAWN_VERTICAL_SEARCH;
         int dx = random.nextInt(radius * 2 + 1) - radius;
-        int dy = random.nextInt(vertical * 2 + 1) - vertical;
         int dz = random.nextInt(radius * 2 + 1) - radius;
 
-        return townHallPos.offset(dx, dy, dz);
+        for (int distance = 0; distance <= vertical; distance++)
+        {
+            BlockPos same = townHallPos.offset(dx, distance, dz);
+
+            if (isValidSpawn(level, same))
+            {
+                return same;
+            }
+
+            if (distance > 0)
+            {
+                BlockPos mirror = townHallPos.offset(dx, -distance, dz);
+
+                if (isValidSpawn(level, mirror))
+                {
+                    return mirror;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static void queue(ServerLevel level, PendingSpawn pending)
