@@ -1,5 +1,6 @@
 package com.akikazu.colony.common.citizen.entity;
 
+import com.akikazu.colony.api.building.room.RoomId;
 import com.akikazu.colony.api.citizen.Citizen;
 import com.akikazu.colony.api.citizen.CitizenId;
 import com.akikazu.colony.api.colony.ColonyId;
@@ -27,6 +28,7 @@ public class EntityCitizen extends PathfinderMob implements Citizen
     private CitizenId citizenId = CitizenId.random();
     private String displayName = "Unknown";
     private @Nullable ColonyId colony = null;
+    private @Nullable RoomId assignedHomeRoom = null;
 
     public EntityCitizen(EntityType<? extends EntityCitizen> type, Level level)
     {
@@ -60,6 +62,12 @@ public class EntityCitizen extends PathfinderMob implements Citizen
         return Optional.ofNullable(colony);
     }
 
+    @Override
+    public Optional<RoomId> assignedHomeRoom()
+    {
+        return Optional.ofNullable(assignedHomeRoom);
+    }
+
     public CitizenId getCitizenId()
     {
         return citizenId;
@@ -73,6 +81,11 @@ public class EntityCitizen extends PathfinderMob implements Citizen
     public void setDisplayName(String displayName)
     {
         this.displayName = java.util.Objects.requireNonNull(displayName, "displayName");
+    }
+
+    public void setAssignedHomeRoom(@Nullable RoomId room)
+    {
+        this.assignedHomeRoom = room;
     }
 
     @Override
@@ -98,6 +111,11 @@ public class EntityCitizen extends PathfinderMob implements Citizen
         {
             tag.putUUID("ColonyId", colony.value());
         }
+
+        if (assignedHomeRoom != null)
+        {
+            tag.putUUID("AssignedHomeRoom", assignedHomeRoom.value());
+        }
     }
 
     @Override
@@ -118,6 +136,15 @@ public class EntityCitizen extends PathfinderMob implements Citizen
         if (tag.hasUUID("ColonyId"))
         {
             colony = new ColonyId(tag.getUUID("ColonyId"));
+        }
+
+        if (tag.hasUUID("AssignedHomeRoom"))
+        {
+            assignedHomeRoom = new RoomId(tag.getUUID("AssignedHomeRoom"));
+        }
+        else
+        {
+            assignedHomeRoom = null;
         }
     }
 }
