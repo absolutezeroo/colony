@@ -5,6 +5,7 @@ import com.akikazu.colony.api.building.room.RoomType;
 import com.akikazu.colony.api.job.JobType;
 import com.akikazu.colony.api.registry.ColonyRegistries;
 import com.akikazu.colony.api.storage.StorageRoleType;
+import com.akikazu.colony.api.workzone.WorkZoneAnchorType;
 import com.akikazu.colony.common.building.functional.FunctionalBlockDetectorRegistry;
 import com.akikazu.colony.common.building.functional.TaggedBlockDetector;
 import com.akikazu.colony.common.building.impl.ResidenceHutType;
@@ -15,6 +16,7 @@ import com.akikazu.colony.common.storage.role.InputRoleType;
 import com.akikazu.colony.common.storage.role.MaterialsRoleType;
 import com.akikazu.colony.common.storage.role.OutputRoleType;
 import com.akikazu.colony.common.storage.role.ToolsRoleType;
+import com.akikazu.colony.common.workzone.scarecrow.ScarecrowAnchorType;
 import com.akikazu.colony.core.registry.Identifier;
 import com.akikazu.colony.core.registry.Registry;
 import com.akikazu.colony.core.registry.RegistryView;
@@ -48,6 +50,9 @@ public final class ColonyBootstrap
     private static final Registry<StorageRoleType> STORAGE_ROLE_TYPES = new SimpleRegistry<>(
             ColonyRegistries.STORAGE_ROLE_TYPE);
 
+    private static final Registry<WorkZoneAnchorType> ANCHOR_TYPES = new SimpleRegistry<>(
+            ColonyRegistries.ANCHOR_TYPE);
+
     private static volatile boolean registered;
 
     private ColonyBootstrap()
@@ -72,9 +77,17 @@ public final class ColonyBootstrap
 
         registerStorageRoles();
 
+        registerAnchorTypes();
+
         registerBuiltinDetectors();
 
         registered = true;
+    }
+
+    private static void registerAnchorTypes()
+    {
+        ANCHOR_TYPES.register(ScarecrowAnchorType.ID, ScarecrowAnchorType.INSTANCE);
+        ANCHOR_TYPES.freeze();
     }
 
     private static void registerStorageRoles()
@@ -146,5 +159,15 @@ public final class ColonyBootstrap
     public static RegistryView<StorageRoleType> storageRolesView()
     {
         return STORAGE_ROLE_TYPES;
+    }
+
+    public static Registry<WorkZoneAnchorType> anchorTypes()
+    {
+        return ANCHOR_TYPES;
+    }
+
+    public static RegistryView<WorkZoneAnchorType> anchorTypesView()
+    {
+        return ANCHOR_TYPES;
     }
 }
