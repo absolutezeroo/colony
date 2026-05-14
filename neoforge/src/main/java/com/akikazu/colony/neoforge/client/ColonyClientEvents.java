@@ -1,8 +1,10 @@
 package com.akikazu.colony.neoforge.client;
 
 import com.akikazu.colony.neoforge.client.entity.EntityCitizenRenderer;
+import com.akikazu.colony.neoforge.client.particle.TypedChestParticleHandler;
 import com.akikazu.colony.neoforge.client.render.PendingPlacementHudOverlay;
 import com.akikazu.colony.neoforge.client.render.PendingPlacementOverlay;
+import com.akikazu.colony.neoforge.client.render.StorageDesignationHudOverlay;
 import com.akikazu.colony.neoforge.client.render.ZonePaintingOverlay;
 import com.akikazu.colony.neoforge.entity.ColonyEntities;
 
@@ -28,10 +30,12 @@ public final class ColonyClientEvents
         modEventBus.addListener(ColonyClientEvents::onRegisterRenderers);
         modEventBus.addListener(ColonyToolHud::onRegisterGuiLayers);
         modEventBus.addListener(PendingPlacementHudOverlay::onRegisterGuiLayers);
+        modEventBus.addListener(StorageDesignationHudOverlay::onRegisterGuiLayers);
         ColonyToolKeyBindings.register();
         PendingPlacementOverlay.register();
         ZonePaintingOverlay.register();
         PendingPlacementKeyHandler.register();
+        TypedChestParticleHandler.register();
     }
 
     private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event)
