@@ -4,6 +4,8 @@ import com.akikazu.colony.api.building.room.RoomId;
 import com.akikazu.colony.api.citizen.Citizen;
 import com.akikazu.colony.api.citizen.CitizenId;
 import com.akikazu.colony.api.colony.ColonyId;
+import com.akikazu.colony.common.citizen.ai.ColonyGoToHomeRoomAtNightGoal;
+import com.akikazu.colony.common.citizen.ai.ColonySleepInBedGoal;
 import com.akikazu.colony.common.citizen.pathfinding.ColonyPathNavigation;
 
 import net.minecraft.nbt.CompoundTag;
@@ -11,6 +13,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
 
@@ -91,6 +94,9 @@ public class EntityCitizen extends PathfinderMob implements Citizen
     @Override
     protected void registerGoals()
     {
+        this.goalSelector.addGoal(4, new ColonySleepInBedGoal(this));
+        this.goalSelector.addGoal(5, new ColonyGoToHomeRoomAtNightGoal(this));
+        this.goalSelector.addGoal(10, new WaterAvoidingRandomStrollGoal(this, 1.0D));
     }
 
     @Override
