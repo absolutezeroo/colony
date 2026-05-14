@@ -17,6 +17,7 @@
     "colony.command.wand_restore.success": "Colony Tool restored.",
     "colony.command.wand_restore.already_have": "You already have a Colony Tool.",
     "colony.message.colony_founded": "Colony \"%s\" founded! 4 citizens have arrived.",
+    "colony.message.zone_mode.no_pending_placement": "Zone mode is only active during hut placement. Place a hut block first.",
     "hut.colony.residence_hut": "Residence Hut",
     "colony.message.pending_placement.no_colony_tool": "You need a Colony Tool. Use /colony wand restore.",
     "colony.message.pending_placement.started": "Place: %s. Designate the outer zone, then press Enter to confirm or Esc to cancel.",

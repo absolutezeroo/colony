@@ -1,10 +1,13 @@
 package com.akikazu.colony.neoforge.item;
 
 import com.akikazu.colony.api.item.ColonyToolMode;
+import com.akikazu.colony.neoforge.network.ColonyServerSession;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -25,9 +28,10 @@ import java.util.List;
  * and is committed to the stack by the {@code CycleColonyToolModePayload} server handler.
  *
  * <p>
- * The {@link #use(Level, Player, InteractionHand)} branches by mode but emits placeholder chat messages — the real Zone
- * / Storage / Link behaviors land in prompts 2.3–2.4. Inspect already resolves a block via ray cast so the mode
- * detection is end-to-end testable in this prompt.
+ * The {@link #use(Level, Player, InteractionHand)} branches by mode. ZONE painting itself is driven client-side from
+ * {@code PendingPlacementKeyHandler} (right-clicks are swallowed before reaching the server while a pending placement
+ * is active); the server-side branch here only fires when no pending placement exists, in which case it points the
+ * player at the correct trigger. STORAGE/LINK remain placeholder until their respective workflows land.
  */
 public final class ColonyToolItem extends Item
 {
@@ -69,8 +73,7 @@ public final class ColonyToolItem extends Item
 
         switch (mode)
         {
-            case ZONE -> player.sendSystemMessage(
-                    Component.literal("Zone painting will be available in prompt 2.3"));
+            case ZONE -> handleZoneUse(player);
             case STORAGE -> player.sendSystemMessage(
                     Component.literal("Storage typing will be available in prompt 2.4"));
             case LINK -> player.sendSystemMessage(
@@ -80,6 +83,34 @@ public final class ColonyToolItem extends Item
         }
 
         return InteractionResultHolder.success(stack);
+    }
+
+    private static void handleZoneUse(Player player)
+    {
+        if (!(player instanceof ServerPlayer serverPlayer))
+        {
+            return;
+        }
+
+        MinecraftServer server = serverPlayer.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        boolean hasPending = ColonyServerSession.get(server)
+                .pendingPlacements()
+                .get(serverPlayer.getUUID())
+                .isPresent();
+
+        if (hasPending)
+        {
+            return;
+        }
+
+        serverPlayer.sendSystemMessage(
+                Component.translatable("colony.message.zone_mode.no_pending_placement"));
     }
 
     @Override
