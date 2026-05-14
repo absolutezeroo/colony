@@ -77,7 +77,7 @@ public final class ColonyToolItem extends Item
             case STORAGE -> player.sendSystemMessage(
                     Component.translatable("colony.message.placeholder.storage_typing"));
             case LINK -> player.sendSystemMessage(
-                    Component.literal("Anchor linking will be available in later prompt"));
+                    Component.translatable("colony.message.placeholder.anchor_linking"));
             case INSPECT -> player.sendSystemMessage(describeLookedAtBlock(level, player));
             default -> player.sendSystemMessage(Component.literal("Unknown mode"));
         }
@@ -137,12 +137,17 @@ public final class ColonyToolItem extends Item
 
         if (hit.getType() == HitResult.Type.MISS)
         {
-            return Component.literal("Inspect: no block in range");
+            return Component.translatable("colony.message.colony_tool.inspect.no_block");
         }
 
         BlockPos pos = hit.getBlockPos();
-        String blockName = level.getBlockState(pos).getBlock().getDescriptionId();
+        Component blockName = Component.translatable(level.getBlockState(pos).getBlock().getDescriptionId());
 
-        return Component.literal("Inspect: " + blockName + " @ " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ());
+        return Component.translatable(
+                "colony.message.colony_tool.inspect.block",
+                blockName,
+                pos.getX(),
+                pos.getY(),
+                pos.getZ());
     }
 }

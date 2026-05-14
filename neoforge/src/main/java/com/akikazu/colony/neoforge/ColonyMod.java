@@ -142,7 +142,7 @@ public final class ColonyMod
     {
         if (event.getEntity() instanceof ServerPlayer serverPlayer)
         {
-            serverPlayer.sendSystemMessage(Component.literal("Hello, Colony is loaded."));
+            serverPlayer.sendSystemMessage(Component.translatable("colony.message.welcome"));
         }
     }
 

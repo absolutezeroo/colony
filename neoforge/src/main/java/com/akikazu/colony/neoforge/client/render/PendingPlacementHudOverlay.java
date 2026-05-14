@@ -73,7 +73,7 @@ public final class PendingPlacementHudOverlay
         Component name = ColonyBootstrap.hutTypesView()
                 .get(hutId)
                 .map(type -> type.displayName())
-                .orElse(Component.literal(hutId.toString()));
+                .orElse(Component.translatable("colony.hud.pending_placement.unknown_hut", hutId.toString()));
         Component label = Component.translatable("colony.hud.pending_placement.label", name);
 
         Font font = minecraft.font;

@@ -81,7 +81,7 @@ public final class ColonyCommands
 
         if (player == null)
         {
-            source.sendFailure(Component.literal("Only players can restore a Colony Tool."));
+            source.sendFailure(Component.translatable("colony.command.wand_restore.player_only"));
 
             return 0;
         }
@@ -122,13 +122,16 @@ public final class ColonyCommands
 
         if (result.accepted())
         {
-            source.sendSuccess(() -> Component.literal("Registered colony '" + name + "' (" + id + ") at " + pos),
+            source.sendSuccess(
+                    () -> Component.translatable(
+                            "colony.command.register.success", name, id.toString(), pos.toShortString()),
                     true);
 
             return 1;
         }
 
-        source.sendFailure(Component.literal("Colony '" + name + "' (" + id + ") was already registered."));
+        source.sendFailure(Component.translatable(
+                "colony.command.register.already_registered", name, id.toString()));
 
         return 0;
     }
@@ -141,12 +144,13 @@ public final class ColonyCommands
 
         if (entries.isEmpty())
         {
-            source.sendSuccess(() -> Component.literal("No colonies registered."), false);
+            source.sendSuccess(() -> Component.translatable("colony.command.list.empty"), false);
 
             return 0;
         }
 
-        source.sendSuccess(() -> Component.literal("Colonies (" + entries.size() + "):"), false);
+        int total = entries.size();
+        source.sendSuccess(() -> Component.translatable("colony.command.list.header", total), false);
 
         for (Map.Entry<ColonyId, ColonyMetadata> entry : entries.entrySet())
         {
@@ -155,11 +159,15 @@ public final class ColonyCommands
             int citizenCount = manager.loadFull(id)
                     .map(colony -> colony.citizens().size())
                     .orElse(0);
-            String summary = id + " @ " + meta.townHallPos()
-                    + " in " + meta.dimension().location()
-                    + " — citizens=" + citizenCount;
 
-            source.sendSuccess(() -> Component.literal(summary), false);
+            source.sendSuccess(
+                    () -> Component.translatable(
+                            "colony.command.list.entry",
+                            id.toString(),
+                            meta.townHallPos().toShortString(),
+                            meta.dimension().location().toString(),
+                            citizenCount),
+                    false);
         }
 
         return entries.size();
@@ -171,7 +179,7 @@ public final class ColonyCommands
 
         if (id == null)
         {
-            source.sendFailure(Component.literal("Invalid colony id: " + rawId));
+            source.sendFailure(Component.translatable("colony.command.info.invalid_id", rawId));
 
             return 0;
         }
@@ -181,7 +189,7 @@ public final class ColonyCommands
 
         if (metaOpt.isEmpty())
         {
-            source.sendFailure(Component.literal("Unknown colony: " + id));
+            source.sendFailure(Component.translatable("colony.command.info.unknown", id.toString()));
 
             return 0;
         }
@@ -191,11 +199,17 @@ public final class ColonyCommands
                 .map(colony -> colony.citizens().size())
                 .orElse(0);
 
-        source.sendSuccess(() -> Component.literal("Colony " + id), false);
-        source.sendSuccess(() -> Component.literal("  position=" + meta.townHallPos()), false);
-        source.sendSuccess(() -> Component.literal("  dimension=" + meta.dimension().location()), false);
-        source.sendSuccess(() -> Component.literal("  foundedAtTick=" + meta.foundedAtTick()), false);
-        source.sendSuccess(() -> Component.literal("  citizens=" + citizenCount), false);
+        source.sendSuccess(() -> Component.translatable("colony.command.info.header", id.toString()), false);
+        source.sendSuccess(
+                () -> Component.translatable("colony.command.info.position", meta.townHallPos().toShortString()),
+                false);
+        source.sendSuccess(
+                () -> Component.translatable("colony.command.info.dimension", meta.dimension().location().toString()),
+                false);
+        source.sendSuccess(
+                () -> Component.translatable("colony.command.info.founded_at_tick", meta.foundedAtTick()),
+                false);
+        source.sendSuccess(() -> Component.translatable("colony.command.info.citizens", citizenCount), false);
 
         return 1;
     }
