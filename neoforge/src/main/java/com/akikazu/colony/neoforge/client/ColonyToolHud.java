@@ -129,13 +129,22 @@ public final class ColonyToolHud
 
     private static int colorFor(ColonyToolMode mode)
     {
-        return switch (mode)
+        if (mode == ColonyToolMode.ZONE)
         {
-            case ZONE -> ZONE_COLOR;
-            case STORAGE -> STORAGE_COLOR;
-            case LINK -> LINK_COLOR;
-            case INSPECT -> INSPECT_COLOR;
-        };
+            return ZONE_COLOR;
+        }
+
+        if (mode == ColonyToolMode.STORAGE)
+        {
+            return STORAGE_COLOR;
+        }
+
+        if (mode == ColonyToolMode.LINK)
+        {
+            return LINK_COLOR;
+        }
+
+        return INSPECT_COLOR;
     }
 
     private static List<Component> hintsFor(ColonyToolMode mode)
