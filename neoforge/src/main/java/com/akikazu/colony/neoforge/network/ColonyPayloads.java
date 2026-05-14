@@ -1,10 +1,14 @@
 package com.akikazu.colony.neoforge.network;
 
 import com.akikazu.colony.neoforge.ColonyMod;
+import com.akikazu.colony.neoforge.item.ColonyItems;
+import com.akikazu.colony.neoforge.item.ColonyToolItem;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -44,6 +48,11 @@ public final class ColonyPayloads
                 UnsubscribePayload.TYPE,
                 UnsubscribePayload.STREAM_CODEC,
                 ColonyPayloads::handleUnsubscribe);
+
+        registrar.playToServer(
+                CycleColonyToolModePayload.TYPE,
+                CycleColonyToolModePayload.STREAM_CODEC,
+                ColonyPayloads::handleCycleColonyToolMode);
 
         registrar.playToClient(
                 RegisterColonyResponsePayload.TYPE,
@@ -135,6 +144,38 @@ public final class ColonyPayloads
         }
 
         ColonyServerSession.get(server).subscriptions().unsubscribe(sender.getUUID(), payload.colony());
+    }
+
+    private static void handleCycleColonyToolMode(CycleColonyToolModePayload payload, IPayloadContext context)
+    {
+        if (!(context.player() instanceof ServerPlayer sender))
+        {
+            return;
+        }
+
+        MinecraftServer server = sender.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        InteractionHand hand = payload.hand();
+        ItemStack stack = sender.getItemInHand(hand);
+
+        if (!stack.is(ColonyItems.COLONY_TOOL.get()))
+        {
+            return;
+        }
+
+        ColonyServerSession session = ColonyServerSession.get(server);
+
+        if (!session.toolCycleLimiter().tryAcquire(sender.getUUID(), server.getTickCount()))
+        {
+            return;
+        }
+
+        ColonyToolItem.setMode(stack, payload.newMode());
     }
 
     private static void handleRegisterColonyResponse(RegisterColonyResponsePayload payload, IPayloadContext context)

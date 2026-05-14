@@ -25,11 +25,14 @@ public final class ColonyServerSession
 
     private final RegistrationRateLimiter rateLimiter;
 
+    private final ColonyToolCycleRateLimiter toolCycleLimiter;
+
     private final ColonySubscriptionService subscriptions;
 
     private ColonyServerSession()
     {
         this.rateLimiter = RegistrationRateLimiter.defaultLimiter();
+        this.toolCycleLimiter = new ColonyToolCycleRateLimiter();
         this.subscriptions = new ColonySubscriptionService();
     }
 
@@ -46,6 +49,11 @@ public final class ColonyServerSession
     public RegistrationRateLimiter rateLimiter()
     {
         return rateLimiter;
+    }
+
+    public ColonyToolCycleRateLimiter toolCycleLimiter()
+    {
+        return toolCycleLimiter;
     }
 
     public ColonySubscriptionService subscriptions()
