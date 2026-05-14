@@ -13,6 +13,8 @@ neoForge {
         minecraftVersion = project.findProperty('parchment_minecraft')
         mappingsVersion = project.findProperty('parchment_mappings')
     }
+
+    addModdingDependenciesTo sourceSets.test
 }
 
 dependencies {

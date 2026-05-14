@@ -2,6 +2,18 @@
     "entity.colony.citizen": "Citizen",
     "block.colony.town_hall": "Town Hall",
     "item.colony.colony_tool": "Colony Tool",
+    "item.colony.colony_tool.mode.zone": "Zone",
+    "item.colony.colony_tool.mode.storage": "Storage",
+    "item.colony.colony_tool.mode.link": "Link",
+    "item.colony.colony_tool.mode.inspect": "Inspect",
+    "item.colony.colony_tool.hint.scroll": "Shift+Scroll: change mode",
+    "item.colony.colony_tool.hint.zone": "Right-click: start zone painting (V2.3)",
+    "item.colony.colony_tool.hint.storage": "Right-click chest: type as storage (V2.4)",
+    "item.colony.colony_tool.hint.link": "Right-click anchor: link to building (later)",
+    "item.colony.colony_tool.hint.inspect": "Right-click: inspect block",
     "itemGroup.colony": "Colony",
+    "colony.gui.tooltip.colony_tool": "Current mode: %s",
+    "colony.command.wand_restore.success": "Colony Tool restored.",
+    "colony.command.wand_restore.already_have": "You already have a Colony Tool.",
     "colony.message.colony_founded": "Colony \"%s\" founded! 4 citizens have arrived."
 }

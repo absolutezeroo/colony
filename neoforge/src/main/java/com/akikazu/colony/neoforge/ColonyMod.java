@@ -11,9 +11,11 @@ import com.akikazu.colony.neoforge.client.ColonyClientEvents;
 import com.akikazu.colony.neoforge.command.ColonyCommands;
 import com.akikazu.colony.neoforge.entity.ColonyEntities;
 import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
+import com.akikazu.colony.neoforge.gametest.ColonyToolGameTests;
 import com.akikazu.colony.neoforge.gametest.EntityCitizenGameTests;
 import com.akikazu.colony.neoforge.gametest.TownHallFoundingGameTests;
 import com.akikazu.colony.neoforge.item.ColonyCreativeTabs;
+import com.akikazu.colony.neoforge.item.ColonyDataComponents;
 import com.akikazu.colony.neoforge.item.ColonyItems;
 import com.akikazu.colony.neoforge.network.ColonyPayloads;
 import com.akikazu.colony.neoforge.network.ColonyServerSession;
@@ -21,6 +23,7 @@ import com.akikazu.colony.neoforge.network.ColonyServerSession;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -58,6 +61,7 @@ public final class ColonyMod
 
         ColonyEntities.register(modEventBus);
         ColonyBlocks.register(modEventBus);
+        ColonyDataComponents.register(modEventBus);
         ColonyItems.register(modEventBus);
         ColonyCreativeTabs.register(modEventBus);
 
@@ -77,6 +81,7 @@ public final class ColonyMod
         NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(this::onPlayerChangedDimension);
+        NeoForge.EVENT_BUS.addListener(this::onPlayerRespawn);
         NeoForge.EVENT_BUS.register(new TownHallPlacementListener());
         NeoForge.EVENT_BUS.register(new CitizenSpawnTicker());
     }
@@ -93,6 +98,7 @@ public final class ColonyMod
     private void onRegisterGameTests(RegisterGameTestsEvent event)
     {
         event.register(ColonyRegistrationGameTest.class);
+        event.register(ColonyToolGameTests.class);
         event.register(EntityCitizenGameTests.class);
         event.register(TownHallFoundingGameTests.class);
     }
@@ -140,7 +146,29 @@ public final class ColonyMod
             return;
         }
 
-        ColonyServerSession.get(server).subscriptions().forgetPlayer(serverPlayer.getUUID());
+        ColonyServerSession session = ColonyServerSession.get(server);
+        session.subscriptions().forgetPlayer(serverPlayer.getUUID());
+        session.toolCycleLimiter().forget(serverPlayer.getUUID());
+    }
+
+    private void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event)
+    {
+        if (!(event.getEntity() instanceof ServerPlayer serverPlayer))
+        {
+            return;
+        }
+
+        if (ColonyCommands.playerHasColonyTool(serverPlayer))
+        {
+            return;
+        }
+
+        ItemStack tool = new ItemStack(ColonyItems.COLONY_TOOL.get());
+
+        if (!serverPlayer.getInventory().add(tool))
+        {
+            serverPlayer.drop(tool, false);
+        }
     }
 
     private void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event)
