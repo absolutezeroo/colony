@@ -1,8 +1,16 @@
 package com.akikazu.colony.neoforge.network;
 
+import com.akikazu.colony.common.building.placement.BuildingPlacementService;
 import com.akikazu.colony.common.building.placement.PendingPlacement;
 import com.akikazu.colony.common.building.placement.PendingPlacementManager;
+import com.akikazu.colony.common.building.validation.ZoneValidationError;
+import com.akikazu.colony.common.building.validation.ZoneValidationError.DoesNotContainHutPos;
+import com.akikazu.colony.common.building.validation.ZoneValidationError.OutsideLoadedChunks;
+import com.akikazu.colony.common.building.validation.ZoneValidationError.OverlapsExistingBuilding;
+import com.akikazu.colony.common.building.validation.ZoneValidationError.TooLarge;
+import com.akikazu.colony.common.building.validation.ZoneValidationError.TooSmall;
 import com.akikazu.colony.neoforge.ColonyMod;
+import com.akikazu.colony.neoforge.block.ColonyBlocks;
 import com.akikazu.colony.neoforge.item.ColonyItems;
 import com.akikazu.colony.neoforge.item.ColonyToolItem;
 
@@ -66,9 +74,9 @@ public final class ColonyPayloads
                 ColonyPayloads::handleCancelPendingPlacement);
 
         registrar.playToServer(
-                ConfirmPendingPlacementPayload.TYPE,
-                ConfirmPendingPlacementPayload.STREAM_CODEC,
-                ColonyPayloads::handleConfirmPendingPlacement);
+                ConfirmZonePaintingPayload.TYPE,
+                ConfirmZonePaintingPayload.STREAM_CODEC,
+                ColonyPayloads::handleConfirmZonePainting);
 
         registrar.playToClient(
                 RegisterColonyResponsePayload.TYPE,
@@ -228,7 +236,7 @@ public final class ColonyPayloads
         sender.sendSystemMessage(Component.translatable("colony.message.pending_placement.cancelled"));
     }
 
-    private static void handleConfirmPendingPlacement(ConfirmPendingPlacementPayload payload, IPayloadContext context)
+    private static void handleConfirmZonePainting(ConfirmZonePaintingPayload payload, IPayloadContext context)
     {
         if (!(context.player() instanceof ServerPlayer sender))
         {
@@ -242,19 +250,60 @@ public final class ColonyPayloads
             return;
         }
 
+        ServerLevel level = sender.serverLevel();
         PendingPlacementManager manager = ColonyServerSession.get(server).pendingPlacements();
-        Optional<PendingPlacement> removed = manager.confirm(sender.getUUID());
+        Optional<PendingPlacement> pendingOpt = manager.get(sender.getUUID());
 
-        if (removed.isEmpty())
+        if (pendingOpt.isEmpty())
         {
             return;
         }
+
+        PendingPlacement pending = pendingOpt.get();
+
+        BuildingPlacementService.Result result = BuildingPlacementService.get(level)
+                .attemptPlacement(
+                        sender.getUUID(),
+                        pending,
+                        payload.cornerA(),
+                        payload.cornerB(),
+                        ColonyBlocks.RESIDENCE_HUT.get());
+
+        if (result instanceof BuildingPlacementService.Result.Invalid invalid)
+        {
+            ZoneValidationError firstError = invalid.validation().errors().get(0);
+            sender.sendSystemMessage(translateZoneError(firstError));
+
+            return;
+        }
+
+        manager.confirm(sender.getUUID());
 
         PacketDistributor.sendToPlayer(
                 sender,
                 new SetPendingPlacementClientPayload(null, BlockPos.ZERO));
 
-        sender.sendSystemMessage(Component.translatable("colony.message.pending_placement.confirmed_stub"));
+        sender.sendSystemMessage(Component.translatable("colony.message.pending_placement.building_created"));
+    }
+
+    private static Component translateZoneError(ZoneValidationError error)
+    {
+        return switch (error)
+        {
+            case TooSmall too -> Component.translatable(
+                    "colony.message.zone_validation.too_small", too.actual(), too.minRequired());
+            case TooLarge too -> Component.translatable(
+                    "colony.message.zone_validation.too_large", too.actual(), too.maxAllowed());
+            case DoesNotContainHutPos miss -> Component.translatable(
+                    "colony.message.zone_validation.does_not_contain_hut",
+                    miss.hutPos().getX(),
+                    miss.hutPos().getY(),
+                    miss.hutPos().getZ());
+            case OverlapsExistingBuilding overlap -> Component.translatable(
+                    "colony.message.zone_validation.overlap", overlap.conflict().toString());
+            case OutsideLoadedChunks outside -> Component.translatable(
+                    "colony.message.zone_validation.outside_loaded_chunks");
+        };
     }
 
     private static void handleRegisterColonyResponse(RegisterColonyResponsePayload payload, IPayloadContext context)
