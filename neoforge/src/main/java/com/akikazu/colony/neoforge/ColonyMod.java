@@ -9,6 +9,7 @@ import com.akikazu.colony.neoforge.block.event.TownHallPlacementListener;
 import com.akikazu.colony.neoforge.citizen.CitizenSpawnTicker;
 import com.akikazu.colony.neoforge.client.ColonyClientEvents;
 import com.akikazu.colony.neoforge.command.ColonyCommands;
+import com.akikazu.colony.neoforge.data.FunctionalBlockDetectorReloadListener;
 import com.akikazu.colony.neoforge.entity.ColonyEntities;
 import com.akikazu.colony.neoforge.gametest.BuildingPlacementGameTests;
 import com.akikazu.colony.neoforge.gametest.ColonyRegistrationGameTest;
@@ -32,6 +33,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -78,6 +80,7 @@ public final class ColonyMod
         }
 
         NeoForge.EVENT_BUS.addListener(ColonyCommands::onRegisterCommands);
+        NeoForge.EVENT_BUS.addListener(this::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
         NeoForge.EVENT_BUS.addListener(this::onServerStopped);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
@@ -90,6 +93,11 @@ public final class ColonyMod
 
     private void onCommonSetup(FMLCommonSetupEvent event)
     {
+    }
+
+    private void onAddReloadListeners(AddReloadListenerEvent event)
+    {
+        event.addListener(new FunctionalBlockDetectorReloadListener());
     }
 
     private void onCreateAttributes(EntityAttributeCreationEvent event)

@@ -1,0 +1,6 @@
+{
+    "type": "colony:tagged_blocks",
+    "id": "colony:detector/doors",
+    "function": "colony:door",
+    "tag": "#minecraft:doors"
+}

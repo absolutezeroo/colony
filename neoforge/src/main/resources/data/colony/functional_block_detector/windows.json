@@ -1,0 +1,6 @@
+{
+    "type": "colony:tagged_blocks",
+    "id": "colony:detector/windows",
+    "function": "colony:window",
+    "tag": "#colony:window"
+}

@@ -1,0 +1,6 @@
+{
+    "type": "colony:tagged_blocks",
+    "id": "colony:detector/beds",
+    "function": "colony:bed",
+    "tag": "#minecraft:beds"
+}
