@@ -79,7 +79,6 @@ public final class ColonyToolItem extends Item
             case LINK -> player.sendSystemMessage(
                     Component.translatable("colony.message.placeholder.anchor_linking"));
             case INSPECT -> player.sendSystemMessage(describeLookedAtBlock(level, player));
-            default -> player.sendSystemMessage(Component.literal("Unknown mode"));
         }
 
         return InteractionResultHolder.success(stack);
