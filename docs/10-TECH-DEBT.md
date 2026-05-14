@@ -132,6 +132,15 @@ Do **not** add an entry for:
 
 The room requirement prompt asks for a Structure tab in `BuildingScreen` that surfaces each designated room's `RoomStatus` (green check for valid, red X with failure tooltip for invalid) and a "Re-evaluate" button. The `BuildingScreen` itself does not yet exist — the entire Building GUI stack lands in a later prompt. `RoomValidator.reevaluate(level, room)` is in place as the server-side hook the future button will invoke; the GUI work is the only deferred piece.
 
+### BuildingScreen Citizens tab not implemented
+
+**Status:** DEFERRED
+**Severity:** LOW
+**Discovered:** Phase 1, month 2 (2026-05)
+**Target:** Phase 1, month 3 (Building GUI prompt)
+
+The home-room assignment prompt asks for a Citizens tab in `BuildingScreen` that lists each citizen affiliated with the colony, shows their current state ("Idle" / "Sleeping") and assigned home room, and offers an "Assign" button that opens a sub-screen of bedroom rooms with available bed capacity (`RoomRequirementEvaluator` Valid AND `citizensInRoom(roomId).count() < bedCount`). The same blocker as the Structure tab applies: `BuildingScreen` does not exist yet. The server-side surface is in place — `CitizenAssignmentService.assignHomeRoom` / `unassignHomeRoom` / `citizensInRoom` plus the `RoomIndex.allInBuilding` query — so the future GUI is wiring-only.
+
 ### `AxisAlignedOuterZone` shape diverges from doc spec
 
 **Status:** FIXED-IN-CODE
