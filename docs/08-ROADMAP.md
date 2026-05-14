@@ -60,16 +60,30 @@ The minimum to call the project "alive."
 
 **Phase 1 exit criteria:** the player can place a Town Hall, see 4 citizens spawn, build a structure, place a Residential Hut, paint zones, designate a bedroom, and watch citizens sleep there at night. **First playable end-to-end loop.**
 
+### Phase 1 status at v0.4.0-alpha (2026-05-14)
+
+Server-side: complete. Every mechanic listed above is implemented and exercised by 29 GameTests + 110 unit tests. See `docs/phase-1-retrospective.md` for the per-step breakdown.
+
+Client-side: incomplete. `BuildingScreen` and the entire Building GUI stack were deferred (tracked in `docs/10-TECH-DEBT.md` as the `BuildingScreen Structure tab` and `BuildingScreen Citizens tab` entries). Room designation and home-room assignment are only reachable today through the server-side surfaces — there is no in-world UI for them.
+
+Phase 2 must land the GUI stack as its first prompt-group, *before* the Farmer-job feature work begins. Without `BuildingScreen`, Phase 2's Farmer Hut has no way for a player to designate the required Office room, and the public alpha at end-of-Phase-2 is unshippable.
+
 ## Phase 2 — First Job (2 months)
 
-A citizen who actually does something useful.
+**Month 4 (new ordering — GUI first):**
 
-**Month 4:**
+- **Building GUI stack (priority block, must land before any new building type):** `BuildingScreen` with Structure tab (room designation, room status display, re-evaluate button) and Citizens tab (list affiliated citizens, assign/unassign home room). Right-click on any Hut block opens the screen. C2S payloads for designate/assign/unassign. Validation server-side. This unblocks Phase 1's player-facing loop and is a precondition for everything below.
+
+**Month 4 (continued, after GUI):**
+
+A citizen who actually does something useful.
 
 - Farmer Hut Building type with required Office room slot.
 - Storage chest typing system: 5 roles, Colony Tool storage mode, in-world particle indicators.
 - Farmer Hut storage slots: seeds_input, tools, harvest_output.
 - Scarecrow anchor type, right-click with seed sets crop, GUI for zone N/S/W/E offsets.
+- Decide save-versioning posture (`dataVersion` on every persisted record, or accept alpha save breakage). See `docs/10-TECH-DEBT.md` ‘`dataVersion` discipline applies only to `ColonySnapshot`’. This decision must land *before* any Farmer-related record is added.
+- Add `./gradlew :verifyModuleBoundaries` (ArchUnit or import scan) so the four module-boundary invariants are CI-enforced rather than audit-enforced. See tech-debt entry.
 
 **Month 5:**
 

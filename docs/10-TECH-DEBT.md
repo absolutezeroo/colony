@@ -150,6 +150,33 @@ The home-room assignment prompt asks for a Citizens tab in `BuildingScreen` that
 
 `docs/04-BUILDING-SYSTEM.md` lines 51-58 specifies `record AxisAlignedOuterZone(UUID id, BlockPos hutBlockPosition, int north, south, west, east, up, down)` — directional offsets tethered to the hut block. The actual implementation is `record AxisAlignedOuterZone(BlockPos min, BlockPos max) implements OuterZone` with a normalizing `fromCorners` factory. The new shape is strictly simpler (overlap/containment are arithmetic on two corners) and makes the codec trivial. Update doc 04 to match the implementation; no code change needed.
 
+### `dataVersion` discipline applies only to `ColonySnapshot`
+
+**Status:** OPEN
+**Severity:** MEDIUM
+**Discovered:** Phase 1 audit (2026-05-14)
+**Target:** Before any Phase 2 prompt removes or renames a persisted field
+
+CLAUDE.md states *"Versioned with `dataVersion` field on every persisted record"* and `docs/18-SAVE-VERSIONING.md` echoes the policy. Reality after Phase 1: only `ColonySnapshot` carries a `dataVersion`. `BuildingMetadata`, `RoomIndex.Entry`, `CitizenAssignmentIndex.Entry`, and the SavedData roots `BuildingIndex` / `RoomIndex` / `CitizenAssignmentIndex` do not. The `:common/persistence/migration/steps/` directory described in `docs/18-SAVE-VERSIONING.md` does not exist. The first Phase 2 prompt that changes a persisted field on any of these records will fail with a hard codec exception on existing alpha saves instead of triggering a migration. Either widen the rule (add `dataVersion` to every new SavedData + scaffold the migration directory) or narrow the policy ("colony root is versioned; descendants accept breaks during alpha"). Picking one is a precondition to Phase 2.
+
+### Goal-coupled wake-from-sleep (fixed during audit)
+
+**Status:** FIXED-IN-CODE
+**Severity:** LOW
+**Discovered:** Phase 1 audit (2026-05-14)
+**Target:** Phase 2, when more bedtime-adjacent goals land
+
+`ColonySleepInBedGoal.canUse()` short-circuited on `citizen.isSleeping()`, which meant `canContinueToUse()` (where the wake-on-day check lived) only ran for citizens the goal had itself put to sleep. The `CitizenSleepGameTests::citizenLeavesBedAtDay` test caught this on the audit run. Fix landed pre-tag: `EntityCitizen.aiStep()` unconditionally wakes a sleeping citizen at daytime. Recorded because the failure pattern — an AI Goal claiming ownership of a state transition it doesn't actually own — will recur as more goals land in Phase 2. Watch for it during Farmer/Cook/etc. behavior reviews.
+
+### No automated check for module-boundary invariants
+
+**Status:** OPEN
+**Severity:** LOW
+**Discovered:** Phase 1 audit (2026-05-14)
+**Target:** Phase 2, month 1 (before content prompts add new modules)
+
+The four module-boundary invariants from `docs/01-ARCHITECTURE.md` (`:core` no MC, `:api` no downward imports, `:common` no `:neoforge`, `:testmod` no `:common`/`:neoforge`) hold today only because audits re-grep them. Gradle does not fail the build on a violating import — the dependency graph only blocks a violation between modules with declared dependencies in the wrong direction, not between modules without a dependency at all (a stray `import net.minecraft.X` in `:core` compiles fine because nothing pulls MC onto `:core`'s classpath, but a stray `import com.akikazu.colony.neoforge.X` in `:common` would *also* compile if you accidentally added the dependency). Add a `./gradlew :verifyModuleBoundaries` task (or wire ArchUnit into each module's `test` source set) that fails CI on any violating import. Until then, "modularity by compiler" is partly aspirational.
+
 ---
 
 ## Risk-flagged (advance warnings)

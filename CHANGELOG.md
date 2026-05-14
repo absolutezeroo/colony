@@ -5,6 +5,81 @@ All notable changes to Colony are recorded here. Format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Pre-V1.0 pre-release
 suffixes are used per `docs/19-RELEASE-COMMUNICATION.md`.
 
+## [0.4.0-alpha] - 2026-05-14
+
+**Phase 1 milestone: the server-side core loop is complete and validated.**
+
+A citizen with an assigned home bedroom now walks to the room at sunset, sleeps
+in a bed inside the room, and wakes at sunrise — including the failure case
+where sleep was entered through any path other than the bedtime goal itself.
+Combined with Month 1 (Town Hall + citizen spawning + persistence) and Month 2
+(Colony Tool + Building placement + AABB zone painting), the full Phase 1
+exit criterion is met on the server side. Player-facing UI for room
+designation and home-room assignment is intentionally deferred to Phase 2
+month 4 (tracked in `docs/10-TECH-DEBT.md`); the server surfaces the GUI will
+call are all in place.
+
+See `docs/phase-1-retrospective.md` for the honest post-mortem and
+`docs/phase-1-smoke-test.md` for the per-step pass/fail audit.
+
+### Added
+- `FunctionalBlock` + `FunctionalBlockDetector` SPI in `:api`: pluggable block
+  detection for room requirements.
+- `TaggedBlockDetector` in `:common` plus three datapack-driven builtin
+  profiles (`data/colony/functional_block_detector/{beds,doors,windows}.json`).
+  Any modded bed/door/window joins the registry without a code change.
+- `RoomType` + `RoomRequirement` interfaces (`:api`), `BedroomType` builtin
+  (`:common`).
+- `Room`, `RoomId`, `RoomStatus`, `FreeformZone` core types.
+- `RoomValidator`, `RoomRequirementEvaluator`, `RoomIndex` SavedData. Room
+  status is re-derived on demand rather than persisted; bed lookup uses the
+  detector registry.
+- `Citizen.assignedHomeRoom()` API extension. `CitizenAssignmentService` in
+  `:api` plus `CitizenAssignmentServiceImpl` + `CitizenAssignmentIndex`
+  SavedData in `:common`. Home-room persists on the entity NBT *and* in the
+  inverse-lookup index.
+- `ColonyGoToHomeRoomAtNightGoal` (priority 5) walks the citizen to the
+  assigned room's bed at sunset.
+- `ColonySleepInBedGoal` (priority 4) snaps the citizen onto an unoccupied
+  bed inside the room. Vanilla `LivingEntity.startSleeping` handles pose +
+  bed-occupied flag.
+- `EntityCitizen.aiStep()` wake handler: any citizen sleeping at daytime is
+  woken regardless of how it entered sleep. Caught by
+  `CitizenSleepGameTests::citizenLeavesBedAtDay` during the audit pass and
+  fixed pre-tag.
+- 7 new GameTests (`RoomRequirementGameTests` × 4, `CitizenSleepGameTests`
+  × 3). 29 GameTests total now passing on `:neoforge:runGameTestServer`.
+- 11 new unit tests (`RoomRequirementEvaluatorTest`,
+  `CitizenAssignmentServiceTest`). 110 unit tests total green across
+  `:core` / `:api` / `:common`.
+- `docs/phase-1-retrospective.md`: post-mortem.
+- `docs/phase-1-smoke-test.md`: step-by-step audit results.
+- Tech-debt entries: `dataVersion` discipline applies only to
+  `ColonySnapshot`, goal-coupled wake (now FIXED-IN-CODE), no automated
+  module-boundary check.
+
+### Changed
+- `docs/08-ROADMAP.md` reordered: Phase 2 now starts with the Building GUI
+  prompt-group, ahead of Farmer-job content, because the GUI gap blocks the
+  player-facing Phase 1 loop. Save-versioning posture decision is also
+  moved up to Phase 2 month 4 as a precondition for any new persisted
+  record.
+
+### Save format
+- Adds `colony_room_index` and `colony_citizen_assignments` SavedData.
+- `EntityCitizen` NBT gains optional `AssignedHomeRoom` UUID field.
+- 0.3.0-alpha saves load cleanly (no rooms, no assignments, empty indices).
+  Pre-V1 alphas still do not guarantee forward compatibility.
+
+### Known limitations
+- No in-world UI for room designation or home-room assignment. Both are
+  reachable only through the server-side surfaces today. See
+  `docs/10-TECH-DEBT.md` "BuildingScreen Structure tab" and
+  "BuildingScreen Citizens tab".
+- `dataVersion` is only on `ColonySnapshot`; new SavedData records lack it.
+  Any field-removing change in Phase 2 will fail to load existing alpha
+  saves. Tracked.
+
 ## [0.3.0-alpha] - 2026-05-14
 
 Phase 1 Month 2 milestone: the Building System lands. A player with a Town Hall
