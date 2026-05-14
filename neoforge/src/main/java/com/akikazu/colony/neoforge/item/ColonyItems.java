@@ -26,6 +26,8 @@ public final class ColonyItems
             "residence_hut",
             () -> new ResidenceHutBlockItem(ColonyBlocks.RESIDENCE_HUT.get(), new Item.Properties()));
 
+    public static final DeferredItem<BlockItem> SCARECROW = ITEMS.registerSimpleBlockItem(ColonyBlocks.SCARECROW);
+
     public static final DeferredItem<ColonyToolItem> COLONY_TOOL = ITEMS.register(
             "colony_tool",
             () -> new ColonyToolItem(new Item.Properties().stacksTo(1)));

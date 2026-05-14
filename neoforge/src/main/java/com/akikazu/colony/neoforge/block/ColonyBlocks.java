@@ -35,6 +35,14 @@ public final class ColonyBlocks
                     .strength(3.0F)
                     .sound(SoundType.WOOD)));
 
+    public static final DeferredHolder<Block, ScarecrowBlock> SCARECROW = BLOCKS.register(
+            "scarecrow",
+            () -> new ScarecrowBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(1.5F)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()));
+
     private ColonyBlocks()
     {
     }

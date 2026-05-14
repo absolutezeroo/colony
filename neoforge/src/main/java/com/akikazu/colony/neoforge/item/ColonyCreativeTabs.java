@@ -39,6 +39,7 @@ public final class ColonyCreativeTabs
     {
         output.accept(ColonyItems.TOWN_HALL.get());
         output.accept(ColonyItems.RESIDENCE_HUT.get());
+        output.accept(ColonyItems.SCARECROW.get());
         output.accept(ColonyItems.COLONY_TOOL.get());
     }
 
