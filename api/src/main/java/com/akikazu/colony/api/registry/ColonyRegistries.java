@@ -1,5 +1,6 @@
 package com.akikazu.colony.api.registry;
 
+import com.akikazu.colony.api.building.functional.FunctionalBlockDetector;
 import com.akikazu.colony.api.building.hut.HutType;
 import com.akikazu.colony.api.building.room.RoomType;
 import com.akikazu.colony.api.job.Job;
@@ -28,6 +29,9 @@ public final class ColonyRegistries
 
     public static final RegistryKey<StorageRoleType> STORAGE_ROLE_TYPE = RegistryKey
             .of(Identifier.of("colony", "storage_role_type"));
+
+    public static final RegistryKey<FunctionalBlockDetector> FUNCTIONAL_BLOCK_DETECTOR = RegistryKey
+            .of(Identifier.of("colony", "functional_block_detector"));
 
     private ColonyRegistries()
     {
