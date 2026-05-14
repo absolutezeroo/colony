@@ -100,6 +100,17 @@ public class EntityCitizen extends PathfinderMob implements Citizen
     }
 
     @Override
+    public void aiStep()
+    {
+        super.aiStep();
+
+        if (!level().isClientSide && isSleeping() && level().getDayTime() % 24000L <= 12000L)
+        {
+            stopSleeping();
+        }
+    }
+
+    @Override
     protected PathNavigation createNavigation(Level level)
     {
         return new ColonyPathNavigation(this, level);
