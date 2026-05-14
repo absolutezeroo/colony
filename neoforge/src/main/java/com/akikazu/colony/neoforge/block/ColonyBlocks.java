@@ -28,6 +28,13 @@ public final class ColonyBlocks
                     .strength(3.0F)
                     .sound(SoundType.WOOD)));
 
+    public static final DeferredHolder<Block, ResidenceHutBlock> RESIDENCE_HUT = BLOCKS.register(
+            "residence_hut",
+            () -> new ResidenceHutBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(3.0F)
+                    .sound(SoundType.WOOD)));
+
     private ColonyBlocks()
     {
     }

@@ -38,6 +38,7 @@ public final class ColonyCreativeTabs
             CreativeModeTab.Output output)
     {
         output.accept(ColonyItems.TOWN_HALL.get());
+        output.accept(ColonyItems.RESIDENCE_HUT.get());
         output.accept(ColonyItems.COLONY_TOOL.get());
     }
 

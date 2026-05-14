@@ -1,6 +1,7 @@
 {
     "entity.colony.citizen": "Citizen",
     "block.colony.town_hall": "Town Hall",
+    "block.colony.residence_hut": "Residence Hut",
     "item.colony.colony_tool": "Colony Tool",
     "item.colony.colony_tool.mode.zone": "Zone",
     "item.colony.colony_tool.mode.storage": "Storage",
@@ -15,5 +16,11 @@
     "colony.gui.tooltip.colony_tool": "Current mode: %s",
     "colony.command.wand_restore.success": "Colony Tool restored.",
     "colony.command.wand_restore.already_have": "You already have a Colony Tool.",
-    "colony.message.colony_founded": "Colony \"%s\" founded! 4 citizens have arrived."
+    "colony.message.colony_founded": "Colony \"%s\" founded! 4 citizens have arrived.",
+    "hut.colony.residence_hut": "Residence Hut",
+    "colony.message.pending_placement.no_colony_tool": "You need a Colony Tool. Use /colony wand restore.",
+    "colony.message.pending_placement.started": "Place: %s. Designate the outer zone, then press Enter to confirm or Esc to cancel.",
+    "colony.message.pending_placement.cancelled": "Placement cancelled.",
+    "colony.message.pending_placement.confirmed_stub": "Placement confirmed. Actual zone painting is implemented in prompt 2.3.",
+    "colony.hud.pending_placement.label": "Place: %s"
 }

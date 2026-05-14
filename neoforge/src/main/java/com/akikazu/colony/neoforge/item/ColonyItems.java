@@ -22,6 +22,10 @@ public final class ColonyItems
 
     public static final DeferredItem<BlockItem> TOWN_HALL = ITEMS.registerSimpleBlockItem(ColonyBlocks.TOWN_HALL);
 
+    public static final DeferredItem<ResidenceHutBlockItem> RESIDENCE_HUT = ITEMS.register(
+            "residence_hut",
+            () -> new ResidenceHutBlockItem(ColonyBlocks.RESIDENCE_HUT.get(), new Item.Properties()));
+
     public static final DeferredItem<ColonyToolItem> COLONY_TOOL = ITEMS.register(
             "colony_tool",
             () -> new ColonyToolItem(new Item.Properties().stacksTo(1)));

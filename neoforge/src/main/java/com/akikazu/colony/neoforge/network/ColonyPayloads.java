@@ -1,9 +1,13 @@
 package com.akikazu.colony.neoforge.network;
 
+import com.akikazu.colony.common.building.placement.PendingPlacement;
+import com.akikazu.colony.common.building.placement.PendingPlacementManager;
 import com.akikazu.colony.neoforge.ColonyMod;
 import com.akikazu.colony.neoforge.item.ColonyItems;
 import com.akikazu.colony.neoforge.item.ColonyToolItem;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,6 +17,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+
+import java.util.Optional;
 
 /**
  * Central registration for Colony's {@code CustomPacketPayload}s. Versioned via the registrar string so that
@@ -54,10 +60,25 @@ public final class ColonyPayloads
                 CycleColonyToolModePayload.STREAM_CODEC,
                 ColonyPayloads::handleCycleColonyToolMode);
 
+        registrar.playToServer(
+                CancelPendingPlacementPayload.TYPE,
+                CancelPendingPlacementPayload.STREAM_CODEC,
+                ColonyPayloads::handleCancelPendingPlacement);
+
+        registrar.playToServer(
+                ConfirmPendingPlacementPayload.TYPE,
+                ConfirmPendingPlacementPayload.STREAM_CODEC,
+                ColonyPayloads::handleConfirmPendingPlacement);
+
         registrar.playToClient(
                 RegisterColonyResponsePayload.TYPE,
                 RegisterColonyResponsePayload.STREAM_CODEC,
                 ColonyPayloads::handleRegisterColonyResponse);
+
+        registrar.playToClient(
+                SetPendingPlacementClientPayload.TYPE,
+                SetPendingPlacementClientPayload.STREAM_CODEC,
+                ColonyPayloads::handleSetPendingPlacement);
     }
 
     public static boolean hasRegistrationPermission(ServerPlayer player)
@@ -178,6 +199,64 @@ public final class ColonyPayloads
         ColonyToolItem.setMode(stack, payload.newMode());
     }
 
+    private static void handleCancelPendingPlacement(CancelPendingPlacementPayload payload, IPayloadContext context)
+    {
+        if (!(context.player() instanceof ServerPlayer sender))
+        {
+            return;
+        }
+
+        MinecraftServer server = sender.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        PendingPlacementManager manager = ColonyServerSession.get(server).pendingPlacements();
+        Optional<PendingPlacement> removed = manager.cancel(sender.getUUID());
+
+        if (removed.isEmpty())
+        {
+            return;
+        }
+
+        PacketDistributor.sendToPlayer(
+                sender,
+                new SetPendingPlacementClientPayload(null, BlockPos.ZERO));
+
+        sender.sendSystemMessage(Component.translatable("colony.message.pending_placement.cancelled"));
+    }
+
+    private static void handleConfirmPendingPlacement(ConfirmPendingPlacementPayload payload, IPayloadContext context)
+    {
+        if (!(context.player() instanceof ServerPlayer sender))
+        {
+            return;
+        }
+
+        MinecraftServer server = sender.getServer();
+
+        if (server == null)
+        {
+            return;
+        }
+
+        PendingPlacementManager manager = ColonyServerSession.get(server).pendingPlacements();
+        Optional<PendingPlacement> removed = manager.confirm(sender.getUUID());
+
+        if (removed.isEmpty())
+        {
+            return;
+        }
+
+        PacketDistributor.sendToPlayer(
+                sender,
+                new SetPendingPlacementClientPayload(null, BlockPos.ZERO));
+
+        sender.sendSystemMessage(Component.translatable("colony.message.pending_placement.confirmed_stub"));
+    }
+
     private static void handleRegisterColonyResponse(RegisterColonyResponsePayload payload, IPayloadContext context)
     {
         if (payload.success())
@@ -188,5 +267,10 @@ public final class ColonyPayloads
         }
 
         ColonyMod.LOGGER.info("Colony registration rejected: reason={}", payload.errorReason());
+    }
+
+    private static void handleSetPendingPlacement(SetPendingPlacementClientPayload payload, IPayloadContext context)
+    {
+        PendingPlacementClientState.apply(payload);
     }
 }
