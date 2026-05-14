@@ -1,13 +1,24 @@
 package com.akikazu.colony.common.bootstrap;
 
 import com.akikazu.colony.api.building.hut.HutType;
+import com.akikazu.colony.api.building.room.RoomType;
 import com.akikazu.colony.api.job.JobType;
 import com.akikazu.colony.api.registry.ColonyRegistries;
+import com.akikazu.colony.common.building.functional.FunctionalBlockDetectorRegistry;
+import com.akikazu.colony.common.building.functional.TaggedBlockDetector;
 import com.akikazu.colony.common.building.impl.ResidenceHutType;
+import com.akikazu.colony.common.building.room.BedroomType;
 import com.akikazu.colony.common.job.impl.IdleJobType;
+import com.akikazu.colony.core.registry.Identifier;
 import com.akikazu.colony.core.registry.Registry;
 import com.akikazu.colony.core.registry.RegistryView;
 import com.akikazu.colony.core.registry.SimpleRegistry;
+
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 
 /**
  * Static bootstrap for built-in colony content. Invoked once at mod construction by the loader entry point, this
@@ -18,9 +29,15 @@ import com.akikazu.colony.core.registry.SimpleRegistry;
  */
 public final class ColonyBootstrap
 {
+    public static final TagKey<Block> COLONY_WINDOW_TAG = TagKey.create(
+            Registries.BLOCK,
+            ResourceLocation.fromNamespaceAndPath("colony", "window"));
+
     private static final Registry<JobType> JOB_TYPES = new SimpleRegistry<>(ColonyRegistries.JOB_TYPE);
 
     private static final Registry<HutType> HUT_TYPES = new SimpleRegistry<>(ColonyRegistries.HUT_TYPE);
+
+    private static final Registry<RoomType> ROOM_TYPES = new SimpleRegistry<>(ColonyRegistries.ROOM_TYPE);
 
     private static volatile boolean registered;
 
@@ -41,7 +58,33 @@ public final class ColonyBootstrap
         HUT_TYPES.register(ResidenceHutType.ID, ResidenceHutType.INSTANCE);
         HUT_TYPES.freeze();
 
+        ROOM_TYPES.register(BedroomType.ID, BedroomType.INSTANCE);
+        ROOM_TYPES.freeze();
+
+        registerBuiltinDetectors();
+
         registered = true;
+    }
+
+    private static void registerBuiltinDetectors()
+    {
+        FunctionalBlockDetectorRegistry detectors = FunctionalBlockDetectorRegistry.get();
+        detectors.registerType(TaggedBlockDetector.TYPE_ID, TaggedBlockDetector.CODEC);
+
+        detectors.registerBuiltin(TaggedBlockDetector.ofBlockTag(
+                Identifier.of("colony", "detector/beds"),
+                Identifier.of("colony", "bed"),
+                BlockTags.BEDS));
+
+        detectors.registerBuiltin(TaggedBlockDetector.ofBlockTag(
+                Identifier.of("colony", "detector/doors"),
+                Identifier.of("colony", "door"),
+                BlockTags.DOORS));
+
+        detectors.registerBuiltin(TaggedBlockDetector.ofBlockTag(
+                Identifier.of("colony", "detector/windows"),
+                Identifier.of("colony", "window"),
+                COLONY_WINDOW_TAG));
     }
 
     public static Registry<JobType> jobTypes()
@@ -62,5 +105,15 @@ public final class ColonyBootstrap
     public static RegistryView<HutType> hutTypesView()
     {
         return HUT_TYPES;
+    }
+
+    public static Registry<RoomType> roomTypes()
+    {
+        return ROOM_TYPES;
+    }
+
+    public static RegistryView<RoomType> roomTypesView()
+    {
+        return ROOM_TYPES;
     }
 }
